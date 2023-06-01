@@ -71,8 +71,6 @@ internal fun PokedexScreen() {
     val navController = LocalNavController.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    EnterFullScreen()
-
     var showSearch by remember { mutableStateOf(false) }
 
     /*if (showSearch) {
@@ -166,7 +164,11 @@ internal fun PokedexScreen() {
                             .padding(vertical = 2.dp)
                             .fillMaxSize()
                     ) {
-                        items(entries) {
+                        items(
+                            entries,
+                            key = { it.url },
+                            contentType = { it }
+                        ) {
                             PokedexEntry(
                                 pokemon = it,
                                 saved = saved,
@@ -187,7 +189,11 @@ internal fun PokedexScreen() {
                             .padding(vertical = 2.dp)
                             .fillMaxSize()
                     ) {
-                        items(entries) { pokemon ->
+                        items(
+                            entries,
+                            key = { it.url },
+                            contentType = { it }
+                        ) { pokemon ->
                             val change = pokemon.let { p ->
                                 state.layoutInfo.normalizedItemPosition(p.url)
                             }
@@ -583,17 +589,6 @@ internal fun LazyListLayoutInfo.normalizedItemPosition(key: Any): Float = visibl
         val center = (viewportEndOffset + viewportStartOffset - it.size) / 2F
         (it.offset.toFloat() - center) / center
     } ?: 0F
-
-@Composable
-private fun EnterFullScreen() {
-    //TODO: This isn't working for some reason
-    // it'll hide the status bar but it's like it loses the insets
-    /*val uiController = rememberSystemUiController()
-    LifecycleHandler(
-        onStart = { uiController.isSystemBarsVisible = false },
-        onDestroy = { uiController.isSystemBarsVisible = true }
-    )*/
-}
 
 @Composable
 private fun AnimationsPreview() {
