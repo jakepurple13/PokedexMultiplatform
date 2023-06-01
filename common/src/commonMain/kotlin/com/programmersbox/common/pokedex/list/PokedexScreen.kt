@@ -11,14 +11,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListLayoutInfo
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -41,9 +40,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import com.programmersbox.common.LocalNavController
-import com.programmersbox.common.firstCharCapital
-import com.programmersbox.common.navigateToDetail
+import com.programmersbox.common.*
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import com.programmersbox.common.pokedex.database.PokemonDb
@@ -88,11 +85,11 @@ internal fun PokedexScreen() {
     var showSort by remember { mutableStateOf(false) }
 
     if (showSort) {
-        /*SortPokemon(
+        SortPokemon(
             pokemonSort = vm.pokemonSort,
             onSortChange = { vm.pokemonSort = it },
             onDismiss = { showSort = false }
-        )*/
+        )
     }
 
     /*ModalNavigationDrawer(
@@ -152,70 +149,92 @@ internal fun PokedexScreen() {
         val onClick: (Pokemon) -> Unit = {
             it.name.let(navController::navigateToDetail)
         }
-        Crossfade(targetState = vm.pokemonListType) { target ->
-            when (target) {
-                PokemonListType.Grid -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        contentPadding = padding,
-                        modifier = Modifier
-                            .padding(vertical = 2.dp)
-                            .fillMaxSize()
-                    ) {
-                        items(
-                            entries,
-                            key = { it.url },
-                            contentType = { it }
-                        ) {
-                            PokedexEntry(
-                                pokemon = it,
-                                saved = saved,
-                                onClick = { onClick(it) },
-                                modifier = Modifier.animateItemPlacement()
-                            )
-                        }
-                    }
-                }
 
-                PokemonListType.List -> {
-                    val state = rememberLazyListState()
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                        contentPadding = padding,
-                        state = state,
-                        modifier = Modifier
-                            .padding(vertical = 2.dp)
-                            .fillMaxSize()
-                    ) {
-                        items(
-                            entries,
-                            key = { it.url },
-                            contentType = { it }
-                        ) { pokemon ->
-                            val change = pokemon.let { p ->
-                                state.layoutInfo.normalizedItemPosition(p.url)
+        Crossfade(targetState = vm.pokemonListType) { target ->
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (target) {
+                    PokemonListType.Grid -> {
+                        val gridState = rememberLazyGridState()
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            contentPadding = padding,
+                            state = gridState,
+                            modifier = Modifier
+                                .padding(vertical = 2.dp)
+                                .fillMaxSize()
+                        ) {
+                            items(
+                                entries,
+                                key = { it.url },
+                                contentType = { it }
+                            ) {
+                                PokedexEntry(
+                                    pokemon = it,
+                                    saved = saved,
+                                    onClick = { onClick(it) },
+                                    modifier = Modifier.animateItemPlacement()
+                                )
                             }
-                            PokedexEntryList(
-                                pokemon = pokemon,
-                                saved = saved,
-                                onClick = { onClick(pokemon) },
-                                modifier = Modifier
-                                    .animateItemPlacement()
-                                    .graphicsLayer {
-                                        change.let { c ->
-                                            translationX = c.absoluteValue * 50
-                                            translationY = -c
-                                        }
-                                    }
-                            )
                         }
+
+                        ScrollbarSupport(
+                            scrollState = gridState,
+                            modifier = Modifier
+                                .padding(padding)
+                                .padding(end = 4.dp)
+                                .align(Alignment.CenterEnd)
+                        )
+                    }
+
+                    PokemonListType.List -> {
+                        val listState = rememberLazyListState()
+
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            contentPadding = padding,
+                            state = listState,
+                            modifier = Modifier
+                                .padding(vertical = 2.dp)
+                                .fillMaxSize()
+                        ) {
+                            items(
+                                entries,
+                                key = { it.url },
+                                contentType = { it }
+                            ) { pokemon ->
+                                val change = pokemon.let { p ->
+                                    listState.layoutInfo.normalizedItemPosition(p.url)
+                                }
+                                PokedexEntryList(
+                                    pokemon = pokemon,
+                                    saved = saved,
+                                    onClick = { onClick(pokemon) },
+                                    modifier = Modifier
+                                        .animateItemPlacement()
+                                        .graphicsLayer {
+                                            change.let { c ->
+                                                translationX = c.absoluteValue * 50
+                                                translationY = -c
+                                            }
+                                        }
+                                )
+                            }
+                        }
+                        ScrollbarSupport(
+                            scrollState = listState,
+                            modifier = Modifier
+                                .padding(padding)
+                                .padding(end = 4.dp)
+                                .align(Alignment.CenterEnd)
+                        )
                     }
                 }
             }
         }
-        //}
     }
 
     Animations()
@@ -485,36 +504,37 @@ private fun DrawerContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SortPokemon(
+internal fun SortPokemon(
     pokemonSort: PokemonSort,
     onSortChange: (PokemonSort) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    /*ModalBottomSheet(onDismissRequest = onDismiss) {
-        TopAppBar(title = { Text("Sort") })
-        LazyColumn {
-            val values = PokemonSort.values()
-            itemsIndexed(values) { index, sort ->
-                ListItem(
-                    leadingContent = {
-                        RadioButton(selected = sort == pokemonSort, onClick = null)
-                    },
-                    headlineText = { Text(sort.name) },
-                    modifier = Modifier.clickable {
-                        onSortChange(sort)
-                        onDismiss()
-                    }
-                )
+    SortingContainer(onDismiss) {
+        Column {
+            TopAppBar(title = { Text("Sort") })
+            LazyColumn {
+                val values = PokemonSort.values()
+                itemsIndexed(values) { index, sort ->
+                    ListItem(
+                        leadingContent = {
+                            RadioButton(selected = sort == pokemonSort, onClick = null)
+                        },
+                        headlineText = { Text(sort.name) },
+                        modifier = Modifier.clickable {
+                            onSortChange(sort)
+                            onDismiss()
+                        }
+                    )
 
-                if (index != values.lastIndex) Divider()
+                    if (index != values.lastIndex) Divider()
+                }
             }
         }
-    }*/
+    }
 }
 
 //TODO: Search
 // Show Saved Pokemon
-// Dialog to choose sorting
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -10,6 +10,7 @@ import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.detail.PokedexDetailScreen
 import com.programmersbox.common.pokedex.list.PokedexScreen
 import moe.tlaster.precompose.navigation.NavHost
+import moe.tlaster.precompose.navigation.NavOptions
 import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.navigation.rememberNavigator
 
@@ -28,7 +29,14 @@ internal fun App() {
                 scene(PokedexScreens.Pokedex.route) { PokedexScreen() }
                 scene(PokedexScreens.Detail.route) { PokedexDetailScreen(it) }
                 //this.dialog()
-                //this.floating()
+                /*floating(PokedexScreens.Sorting.route) {
+                    SortPokemon(
+                        PokemonSort.Index,
+                        onSortChange = {},
+                        onDismiss = { navigator.popBackStack() }
+                    )
+                }*/
+                //floating()
             }
         }
     }
@@ -43,3 +51,8 @@ internal enum class PokedexScreens(val route: String) {
 
 internal fun Navigator.navigateToDetail(name: String) =
     navigate(PokedexScreens.Detail.route.replace("{name}", name))
+
+internal fun Navigator.navigate(
+    screen: PokedexScreens,
+    options: NavOptions? = null
+) = navigate(screen.route, options)

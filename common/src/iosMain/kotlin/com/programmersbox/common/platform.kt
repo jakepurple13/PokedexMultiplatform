@@ -1,10 +1,13 @@
 package com.programmersbox.common
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
@@ -42,5 +45,34 @@ public fun MainViewController(): UIViewController = PreComposeApplication("Poked
 }
 
 public actual suspend fun playAudio(url: String) {
+
+}
+
+@Composable
+public actual fun SortingContainer(onDismiss: () -> Unit, block: @Composable () -> Unit) {
+
+}
+
+@Composable
+public actual fun ScrollbarSupport(
+    scrollState: LazyListState,
+    modifier: Modifier
+) {
+
+}
+
+@Composable
+public actual fun ScrollbarSupport(
+    scrollState: LazyGridState,
+    modifier: Modifier
+) {
+
+}
+
+@Composable
+public actual fun ScrollbarSupport(
+    scrollState: ScrollState,
+    modifier: Modifier
+) {
 
 }
