@@ -11,7 +11,6 @@ import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.database.SavedPokemon
 import com.programmersbox.common.pokedex.database.toPokemon
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -22,9 +21,6 @@ import moe.tlaster.precompose.viewmodel.viewModelScope
 internal class PokedexViewModel(
     private val pokedexDatabase: PokedexDatabase,
 ) : ViewModel() {
-
-    private val dao = pokedexDatabase
-
     var pokemonSort by mutableStateOf(PokemonSort.Index)
     var pokemonListType by mutableStateOf(PokemonListType.Grid)
 
@@ -68,7 +64,8 @@ internal class PokedexViewModel(
         /*viewModelScope.launch {
             PokedexService.fetchPokemonList(0)
                 .onSuccess {
-                    dao.insertPokemon(it.results)
+                    pokedexDatabase.clearPokemonCache()
+                    pokedexDatabase.insertPokemon(it.results)
                 }
         }*/
     }
@@ -94,11 +91,6 @@ internal class PokedexViewModel(
                 .map { it.map { p -> p.listDb.map { it.toPokemon() } } }
                 .cachedIn(viewModelScope)
         }*/
-
-    var searchQuery by mutableStateOf("")
-
-    val searchList = snapshotFlow { searchQuery }
-        .flatMapLatest { dao.searchPokemon(it) }
 
     fun toggleViewType() {
         viewModelScope.launch {

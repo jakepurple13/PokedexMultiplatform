@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
@@ -34,14 +33,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.programmersbox.common.*
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
-import com.programmersbox.common.pokedex.database.PokemonDb
 import com.programmersbox.common.pokedex.database.SavedPokemon
 import io.kamel.image.KamelImage
 import io.kamel.image.lazyPainterResource
@@ -65,24 +61,9 @@ internal fun PokedexScreen() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = LocalNavController.current
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     val gridState = rememberLazyGridState()
     val listState = rememberLazyListState()
-
-    var showSearch by remember { mutableStateOf(false) }
-
-    /*if (showSearch) {
-        SearchPokemon(
-            query = vm.searchQuery,
-            onQueryChange = { vm.searchQuery = it },
-            pokemonList = vm.searchList
-                .collectAsStateWithLifecycle(initialValue = emptyList())
-                .value,
-            onQueryClick = { navController.navigateToPokemonDetail(it.name) },
-            onDismiss = { showSearch = false }
-        )
-    }*/
 
     var showSort by remember { mutableStateOf(false) }
 
@@ -133,13 +114,12 @@ internal fun PokedexScreen() {
                             ) { Icon(vm.pokemonSort.icon, null) }
 
                             IconButton(
-                                onClick = { showSearch = true }
+                                onClick = { navController.navigate(PokedexScreens.Search) }
                             ) { Icon(Icons.Default.Search, null) }
                         },
                         colors = TopAppBarDefaults.smallTopAppBarColors(
                             containerColor = Color(0xFFe74c3c)
-                        ),
-                        scrollBehavior = scrollBehavior
+                        )
                     )
                 }
             },
@@ -158,8 +138,7 @@ internal fun PokedexScreen() {
                         ) { Text("Error. Please Try Again") }
                     }
                 }*/
-            },
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+            }
         ) { padding ->
             val onClick: (Pokemon) -> Unit = {
                 it.name.let(navController::navigateToDetail)
@@ -252,7 +231,7 @@ internal fun PokedexScreen() {
 }
 
 @Composable
-private fun Animations(modifier: Modifier = Modifier) {
+internal fun Animations(modifier: Modifier = Modifier) {
     Row(
         horizontalArrangement = Arrangement.Start,
         modifier = modifier
@@ -514,75 +493,6 @@ internal fun SortPokemon(
             }
         }
     }
-}
-
-//TODO: Search
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SearchPokemon(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    pokemonList: List<PokemonDb>,
-    onQueryClick: (PokemonDb) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val focusManager = LocalFocusManager.current
-    var active by rememberSaveable { mutableStateOf(false) }
-
-    fun closeSearchBar() {
-        focusManager.clearFocus()
-        active = false
-        onDismiss()
-    }
-
-    LaunchedEffect(Unit) {
-        delay(200)
-        active = true
-    }
-
-    /*SearchBar(
-        query = query,
-        onQueryChange = onQueryChange,
-        onSearch = { closeSearchBar() },
-        active = active,
-        onActiveChange = {
-            active = it
-            if (!active) {
-                focusManager.clearFocus()
-                onDismiss()
-            }
-        },
-        placeholder = { Text("Search") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        trailingIcon = {
-            IconButton(onClick = { onQueryChange("") }) {
-                Icon(Icons.Default.Cancel, null)
-            }
-        },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            itemsIndexed(pokemonList) { index, pokemon ->
-                ListItem(
-                    headlineContent = { Text(pokemon.name.firstCharCapital()) },
-                    leadingContent = { Icon(Icons.Filled.Search, contentDescription = null) },
-                    modifier = Modifier.clickable {
-                        closeSearchBar()
-                        onQueryClick(pokemon)
-                    }
-                )
-                if (index != pokemonList.lastIndex) {
-                    Divider()
-                }
-            }
-        }
-    }*/
 }
 
 internal fun LazyListLayoutInfo.normalizedItemPosition(key: Any): Float = visibleItemsInfo

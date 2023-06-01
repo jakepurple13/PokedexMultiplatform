@@ -34,7 +34,7 @@ internal object PokedexService {
         }
     }
 
-    const val PAGE_SIZE: Int = 1000
+    const val PAGE_SIZE: Int = 2000
 
     suspend fun fetchPokemonList(page: Int): Result<PokemonResponse> = fetchPokemonList(
         limit = PAGE_SIZE,

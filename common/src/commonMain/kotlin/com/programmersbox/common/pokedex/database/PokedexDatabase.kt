@@ -99,7 +99,7 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
     suspend fun searchPokemon(searchQuery: String) = realm
         .initDb { PokemonDbList() }.asFlow()
         .mapNotNull { it.obj }
-        .mapNotNull { it.listDb.filter { it.name.contains(searchQuery) } }
+        .mapNotNull { it.listDb.filter { it.name.contains(searchQuery, true) } }
 
     suspend fun saved(name: String) = realm
         .initDb { PokemonDbList() }
