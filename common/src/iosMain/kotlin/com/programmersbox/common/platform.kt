@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -75,4 +72,20 @@ public actual fun ScrollbarSupport(
     modifier: Modifier
 ) {
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+public actual fun DrawerContainer(
+    drawerState: DrawerState,
+    drawerContent: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet { drawerContent() }
+        },
+        content = content
+    )
 }

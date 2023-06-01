@@ -5,13 +5,14 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import javazoom.jl.player.Player
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -89,5 +90,22 @@ public actual fun ScrollbarSupport(
             unhoverColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         modifier = modifier.fillMaxHeight()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+public actual fun DrawerContainer(
+    drawerState: DrawerState,
+    drawerContent: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    PermanentNavigationDrawer(
+        drawerContent = {
+            PermanentDrawerSheet(
+                modifier = Modifier.width(300.dp)
+            ) { drawerContent() }
+        },
+        content = content
     )
 }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -28,10 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -49,6 +47,7 @@ import io.kamel.image.KamelImage
 import io.kamel.image.lazyPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.viewmodel.viewModel
 import kotlin.math.absoluteValue
 import kotlin.random.Random
@@ -67,6 +66,9 @@ internal fun PokedexScreen() {
     val scope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val gridState = rememberLazyGridState()
+    val listState = rememberLazyListState()
 
     var showSearch by remember { mutableStateOf(false) }
 
@@ -92,159 +94,168 @@ internal fun PokedexScreen() {
         )
     }
 
-    /*ModalNavigationDrawer(
+    DrawerContainer(
         drawerContent = {
-            ModalDrawerSheet {
-                DrawerContent(navController = navController, saved = saved)
-            }
-        },
-        drawerState = drawerState
-    ) {*/
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Pokedex") },
-                navigationIcon = {
-                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                        Icon(Icons.Default.Menu, null)
+            DrawerContent(
+                navController = navController,
+                saved = saved,
+                scrollTo = { s ->
+                    scope.launch {
+                        gridState.animateScrollToItem(entries.indexOfFirst { it.url == s.url })
+                        listState.animateScrollToItem(entries.indexOfFirst { it.url == s.url })
                     }
-                },
-                actions = {
-                    IconButton(
-                        onClick = vm::toggleViewType
-                    ) { Icon(vm.pokemonListType.icon, null) }
-
-                    IconButton(
-                        onClick = { showSort = true }
-                    ) { Icon(vm.pokemonSort.icon, null) }
-
-                    IconButton(
-                        onClick = { showSearch = true }
-                    ) { Icon(Icons.Default.Search, null) }
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = Color(0xFFe74c3c)
-                ),
-                scrollBehavior = scrollBehavior
+                }
             )
         },
-        bottomBar = {
-            /*AnimatedVisibility(
-                visible = entries.loadState.append is LoadState.Error,
-                enter = slideInVertically { it / 2 },
-                exit = slideOutVertically { it / 2 }
-            ) {
-                BottomAppBar(
-                    containerColor = Color(0xFFe74c3c)
+        drawerState = drawerState
+    ) {
+        Scaffold(
+            topBar = {
+                Column(
+                    modifier = Modifier.background(Color(0xFFe74c3c))
                 ) {
-                    FilledTonalButton(
-                        onClick = { entries.retry() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Error. Please Try Again") }
+                    Animations(Modifier.padding(TopAppBarDefaults.windowInsets.asPaddingValues()))
+                    TopAppBar(
+                        title = { Text("Pokedex") },
+                        windowInsets = WindowInsets(0.dp),
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Default.Menu, null)
+                            }
+                        },
+                        actions = {
+                            IconButton(
+                                onClick = vm::toggleViewType
+                            ) { Icon(vm.pokemonListType.icon, null) }
+
+                            IconButton(
+                                onClick = { showSort = true }
+                            ) { Icon(vm.pokemonSort.icon, null) }
+
+                            IconButton(
+                                onClick = { showSearch = true }
+                            ) { Icon(Icons.Default.Search, null) }
+                        },
+                        colors = TopAppBarDefaults.smallTopAppBarColors(
+                            containerColor = Color(0xFFe74c3c)
+                        ),
+                        scrollBehavior = scrollBehavior
+                    )
                 }
-            }*/
-        },
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-    ) { padding ->
-        val onClick: (Pokemon) -> Unit = {
-            it.name.let(navController::navigateToDetail)
-        }
-
-        Crossfade(targetState = vm.pokemonListType) { target ->
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                when (target) {
-                    PokemonListType.Grid -> {
-                        val gridState = rememberLazyGridState()
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                            contentPadding = padding,
-                            state = gridState,
-                            modifier = Modifier
-                                .padding(vertical = 2.dp)
-                                .fillMaxSize()
-                        ) {
-                            items(
-                                entries,
-                                key = { it.url },
-                                contentType = { it }
-                            ) {
-                                PokedexEntry(
-                                    pokemon = it,
-                                    saved = saved,
-                                    onClick = { onClick(it) },
-                                    modifier = Modifier.animateItemPlacement()
-                                )
-                            }
-                        }
-
-                        ScrollbarSupport(
-                            scrollState = gridState,
-                            modifier = Modifier
-                                .padding(padding)
-                                .padding(end = 4.dp)
-                                .align(Alignment.CenterEnd)
-                        )
+            },
+            bottomBar = {
+                /*AnimatedVisibility(
+                    visible = entries.loadState.append is LoadState.Error,
+                    enter = slideInVertically { it / 2 },
+                    exit = slideOutVertically { it / 2 }
+                ) {
+                    BottomAppBar(
+                        containerColor = Color(0xFFe74c3c)
+                    ) {
+                        FilledTonalButton(
+                            onClick = { entries.retry() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Error. Please Try Again") }
                     }
+                }*/
+            },
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+        ) { padding ->
+            val onClick: (Pokemon) -> Unit = {
+                it.name.let(navController::navigateToDetail)
+            }
 
-                    PokemonListType.List -> {
-                        val listState = rememberLazyListState()
-
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                            contentPadding = padding,
-                            state = listState,
-                            modifier = Modifier
-                                .padding(vertical = 2.dp)
-                                .fillMaxSize()
-                        ) {
-                            items(
-                                entries,
-                                key = { it.url },
-                                contentType = { it }
-                            ) { pokemon ->
-                                val change = pokemon.let { p ->
-                                    listState.layoutInfo.normalizedItemPosition(p.url)
+            Crossfade(targetState = vm.pokemonListType) { target ->
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when (target) {
+                        PokemonListType.Grid -> {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                contentPadding = padding,
+                                state = gridState,
+                                modifier = Modifier
+                                    .padding(vertical = 2.dp)
+                                    .fillMaxSize()
+                            ) {
+                                items(
+                                    entries,
+                                    key = { it.url },
+                                    contentType = { it }
+                                ) {
+                                    PokedexEntry(
+                                        pokemon = it,
+                                        saved = saved,
+                                        onClick = { onClick(it) },
+                                        modifier = Modifier.animateItemPlacement()
+                                    )
                                 }
-                                PokedexEntryList(
-                                    pokemon = pokemon,
-                                    saved = saved,
-                                    onClick = { onClick(pokemon) },
-                                    modifier = Modifier
-                                        .animateItemPlacement()
-                                        .graphicsLayer {
-                                            change.let { c ->
-                                                translationX = c.absoluteValue * 50
-                                                translationY = -c
-                                            }
-                                        }
-                                )
                             }
+
+                            ScrollbarSupport(
+                                scrollState = gridState,
+                                modifier = Modifier
+                                    .padding(padding)
+                                    .padding(end = 4.dp)
+                                    .align(Alignment.CenterEnd)
+                            )
                         }
-                        ScrollbarSupport(
-                            scrollState = listState,
-                            modifier = Modifier
-                                .padding(padding)
-                                .padding(end = 4.dp)
-                                .align(Alignment.CenterEnd)
-                        )
+
+                        PokemonListType.List -> {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                                contentPadding = padding,
+                                state = listState,
+                                modifier = Modifier
+                                    .padding(vertical = 2.dp)
+                                    .fillMaxSize()
+                            ) {
+                                items(
+                                    entries,
+                                    key = { it.url },
+                                    contentType = { it }
+                                ) { pokemon ->
+                                    val change = pokemon.let { p ->
+                                        listState.layoutInfo.normalizedItemPosition(p.url)
+                                    }
+                                    PokedexEntryList(
+                                        pokemon = pokemon,
+                                        saved = saved,
+                                        onClick = { onClick(pokemon) },
+                                        modifier = Modifier
+                                            .animateItemPlacement()
+                                            .graphicsLayer {
+                                                change.let { c ->
+                                                    translationX = c.absoluteValue * 50
+                                                    translationY = -c
+                                                }
+                                            }
+                                    )
+                                }
+                            }
+                            ScrollbarSupport(
+                                scrollState = listState,
+                                modifier = Modifier
+                                    .padding(padding)
+                                    .padding(end = 4.dp)
+                                    .align(Alignment.CenterEnd)
+                            )
+                        }
                     }
                 }
             }
         }
     }
-
-    Animations()
 }
 
 @Composable
-private fun Animations() {
+private fun Animations(modifier: Modifier = Modifier) {
     Row(
         horizontalArrangement = Arrangement.Start,
-        modifier = Modifier
+        modifier = modifier
             .padding(top = 4.dp)
             .fillMaxWidth(),
     ) {
@@ -434,63 +445,35 @@ private fun PokedexEntryList(
     }
 }
 
-/*@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DrawerContent(
-    navController: NavController,
+    navController: Navigator,
     saved: List<SavedPokemon>,
+    scrollTo: (SavedPokemon) -> Unit,
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(2.dp),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxHeight()
     ) {
         stickyHeader { TopAppBar(title = { Text("Saved Pokemon") }) }
         items(saved) {
-            val surface = MaterialTheme.colorScheme.surface
-            val defaultSwatch = SwatchInfo(
-                rgb = surface,
-                bodyColor = Color.Blue,
-                titleColor = contentColorFor(surface)
-            )
-            var swatchInfo by remember { mutableStateOf(defaultSwatch) }
             Card(
-                onClick = {
-                    navController.navigate(
-                        Screens.PokedexDetail
-                            .route
-                            .replace("{name}", it.name)
-                    ) { launchSingleTop = true }
-                },
-                colors = CardDefaults.cardColors(
-                    containerColor = swatchInfo.rgb,
-                    contentColor = swatchInfo.titleColor
-                )
+                onClick = { navController.navigateToDetail(it.name) },
             ) {
                 ListItem(
-                    colors = ListItemDefaults.colors(
-                        containerColor = swatchInfo.rgb,
-                        headlineColor = swatchInfo.titleColor,
-                        overlineColor = swatchInfo.titleColor
-                    ),
-                    headlineContent = { Text(it.name.firstCharCapital()) },
-                    overlineContent = { Text("#${it.pokedexEntry}") },
+                    headlineText = { Text(it.name.firstCharCapital()) },
+                    overlineText = { Text("#${it.pokedexEntry}") },
+                    trailingContent = {
+                        IconButton(
+                            onClick = { scrollTo(it) }
+                        ) { Icon(Icons.Default.Download, null) }
+                    },
                     leadingContent = {
-                        val latestSwatch by rememberUpdatedState(newValue = swatchInfo)
-                        GlideImage(
-                            imageModel = { it.imageUrl },
-                            component = rememberImageComponent {
-                                +PalettePlugin { p ->
-                                    if (latestSwatch == defaultSwatch) {
-                                        p.dominantSwatch?.let { s ->
-                                            swatchInfo = SwatchInfo(
-                                                rgb = s.rgb.toComposeColor(),
-                                                titleColor = s.titleTextColor.toComposeColor(),
-                                                bodyColor = s.bodyTextColor.toComposeColor()
-                                            )
-                                        }
-                                    }
-                                }
-                            },
+                        KamelImage(
+                            resource = lazyPainterResource(it.imageUrl),
+                            contentDescription = it.name,
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .size(56.dp)
                                 .clip(CircleShape)
@@ -500,7 +483,7 @@ private fun DrawerContent(
             }
         }
     }
-}*/
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -534,7 +517,6 @@ internal fun SortPokemon(
 }
 
 //TODO: Search
-// Show Saved Pokemon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

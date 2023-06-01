@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
@@ -42,7 +43,11 @@ public actual suspend fun playAudio(url: String) {
 public actual fun SortingContainer(onDismiss: () -> Unit, block: @Composable () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
-    ) { block() }
+    ) {
+        Surface(shape = MaterialTheme.shapes.extraLarge) {
+            block()
+        }
+    }
 }
 
 @Composable
@@ -67,4 +72,20 @@ public actual fun ScrollbarSupport(
     modifier: Modifier
 ) {
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+public actual fun DrawerContainer(
+    drawerState: DrawerState,
+    drawerContent: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet { drawerContent() }
+        },
+        content = content
+    )
 }
