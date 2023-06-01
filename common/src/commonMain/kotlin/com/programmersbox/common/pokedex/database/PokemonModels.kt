@@ -3,6 +3,8 @@ package com.programmersbox.common.pokedex.database
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.PokemonDescription
 import com.programmersbox.common.pokedex.PokemonInfo
+import com.programmersbox.common.pokedex.list.PokemonListType
+import com.programmersbox.common.pokedex.list.PokemonSort
 import io.realm.kotlin.ext.realmListOf
 import io.realm.kotlin.types.RealmObject
 import io.realm.kotlin.types.annotations.PrimaryKey
@@ -12,6 +14,7 @@ import kotlinx.serialization.json.Json
 
 internal class PokemonDbList : RealmObject {
     var listDb = realmListOf<PokemonDb>()
+    var cachedInfo = realmListOf<PokemonInfoDb>()
     var savedList = realmListOf<SavedPokemon>()
 }
 
@@ -40,6 +43,11 @@ internal class SavedPokemon : RealmObject {
     var name: String = ""
     var imageUrl: String = ""
     var pokedexEntry: Int = 0
+}
+
+internal class PokedexSettingsDb : RealmObject {
+    var sort: String = PokemonSort.Index.name
+    var listType: String = PokemonListType.Grid.name
 }
 
 internal object PokemonConverters {
@@ -89,3 +97,8 @@ internal fun PokemonInfo.toPokemonInfoDb() = PokemonInfoDb().apply {
     description = pokemonDescription?.let { PokemonConverters.fromDescription(it) }
     experience = this@toPokemonInfoDb.experience
 }
+
+internal class PokedexSettings(
+    val sort: PokemonSort,
+    val listType: PokemonListType
+)

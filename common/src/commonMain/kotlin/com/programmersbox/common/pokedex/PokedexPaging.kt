@@ -1,12 +1,6 @@
 package com.programmersbox.common.pokedex
 
-import app.cash.paging.*
-import com.programmersbox.common.pokedex.database.PokedexDatabase
-import com.programmersbox.common.pokedex.database.PokemonDb
-import com.programmersbox.common.pokedex.database.toPokemonDb
-
-/*
-@OptIn(ExperimentalPagingApi::class)
+/*@OptIn(ExperimentalPagingApi::class)
 internal class PokemonRemoteMediator(
     private val database: PokedexDatabase,
     private val networkService: PokedexService = PokedexService
@@ -32,12 +26,6 @@ internal class PokemonRemoteMediator(
                 // return, reporting end of pagination.
                 LoadType.PREPEND -> return RemoteMediatorMediatorResultSuccess(endOfPaginationReached = true) as RemoteMediatorMediatorResult
                 LoadType.APPEND -> {
-                    */
-/*val lastItem = state.lastItemOrNull() ?: return MediatorResult.Success(
-                        endOfPaginationReached = true
-                    )*//*
-
-
                     // You must explicitly check if the last item is null when
                     // appending, since passing null to networkService is only
                     // valid for initial load. If lastItem is null it means no

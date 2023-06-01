@@ -58,6 +58,7 @@ kotlin {
                 api("moe.tlaster:precompose-viewmodel:1.4.1")
                 api("app.cash.paging:paging-common:3.2.0-alpha05-0.2.2")
                 api("io.github.qdsfdhvh:image-loader:1.2.10")
+                api("media.kamel:kamel-image:0.5.0")
             }
         }
 
@@ -87,6 +88,7 @@ kotlin {
             dependencies {
                 api(compose.preview)
                 api("io.ktor:ktor-client-cio:$ktorVersion")
+                api("com.github.umjammer:jlayer:1.0.2")
             }
         }
 

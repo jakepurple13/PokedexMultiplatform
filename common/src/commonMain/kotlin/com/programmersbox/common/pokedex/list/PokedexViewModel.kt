@@ -7,17 +7,10 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import app.cash.paging.ExperimentalPagingApi
-import app.cash.paging.Pager
-import app.cash.paging.PagingConfig
-import app.cash.paging.map
-import app.cash.paging.cachedIn
-import com.programmersbox.common.pokedex.PokedexService
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.PokedexDatabase
-import com.programmersbox.common.pokedex.database.PokemonDbList
+import com.programmersbox.common.pokedex.database.SavedPokemon
 import com.programmersbox.common.pokedex.database.toPokemon
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -27,8 +20,7 @@ import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
 
 internal class PokedexViewModel(
-    pokedexDatabase: PokedexDatabase,
-    //private val pokedexSettings: DataStore<PokedexSettings>,
+    private val pokedexDatabase: PokedexDatabase,
 ) : ViewModel() {
 
     private val dao = pokedexDatabase
@@ -36,7 +28,16 @@ internal class PokedexViewModel(
     var pokemonSort by mutableStateOf(PokemonSort.Index)
     var pokemonListType by mutableStateOf(PokemonListType.Grid)
 
-    val pokedexEntries = mutableStateListOf<Pokemon>()
+    private val pokedexEntries = mutableStateListOf<Pokemon>()
+
+    val pokedexEntriesSorted by derivedStateOf {
+        when (pokemonSort) {
+            PokemonSort.Index -> pokedexEntries
+            PokemonSort.Alphabetical -> pokedexEntries.sortedBy { it.name }
+        }
+    }
+
+    val savedPokemon = mutableStateListOf<SavedPokemon>()
 
     init {
         viewModelScope.launch {
@@ -49,21 +50,27 @@ internal class PokedexViewModel(
                 .launchIn(viewModelScope)
         }
         viewModelScope.launch {
+            pokedexDatabase.getSavedPokemonList()
+                .onEach {
+                    savedPokemon.clear()
+                    savedPokemon.addAll(it)
+                }
+                .launchIn(viewModelScope)
+        }
+        viewModelScope.launch {
+            pokedexDatabase.getSettings()
+                .onEach {
+                    pokemonSort = it.sort
+                    pokemonListType = it.listType
+                }
+                .launchIn(viewModelScope)
+        }
+        /*viewModelScope.launch {
             PokedexService.fetchPokemonList(0)
                 .onSuccess {
                     dao.insertPokemon(it.results)
                 }
-        }
-        /*pokedexSettings.data
-            .map {
-                when (it.viewType) {
-                    PokedexViewType.Grid -> PokemonListType.Grid
-                    PokedexViewType.List -> PokemonListType.List
-                    else -> PokemonListType.Grid
-                }
-            }
-            .onEach { pokemonListType = it }
-            .launchIn(viewModelScope)*/
+        }*/
     }
 
     /*@OptIn(ExperimentalPagingApi::class, ExperimentalCoroutinesApi::class)
@@ -95,14 +102,12 @@ internal class PokedexViewModel(
 
     fun toggleViewType() {
         viewModelScope.launch {
-            /*pokedexSettings.updateData {
-                it.copy {
-                    viewType = when (pokemonListType) {
-                        PokemonListType.Grid -> PokedexViewType.List
-                        PokemonListType.List -> PokedexViewType.Grid
-                    }
+            pokedexDatabase.updateSettings(
+                listType = when (pokemonListType) {
+                    PokemonListType.Grid -> PokemonListType.List
+                    PokemonListType.List -> PokemonListType.Grid
                 }
-            }*/
+            )
         }
     }
 }

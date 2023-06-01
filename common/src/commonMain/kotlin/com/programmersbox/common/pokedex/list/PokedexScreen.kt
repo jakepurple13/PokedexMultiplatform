@@ -1,6 +1,9 @@
+@file:Suppress("INLINE_FROM_HIGHER_PLATFORM")
+
 package com.programmersbox.common.pokedex.list
 
-import androidx.compose.animation.*
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -8,7 +11,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
@@ -20,7 +22,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -28,7 +29,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -37,12 +41,15 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import com.programmersbox.common.AsyncImage
+import com.programmersbox.common.LocalNavController
 import com.programmersbox.common.firstCharCapital
+import com.programmersbox.common.navigateToDetail
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import com.programmersbox.common.pokedex.database.PokemonDb
 import com.programmersbox.common.pokedex.database.SavedPokemon
+import io.kamel.image.KamelImage
+import io.kamel.image.lazyPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.viewmodel.viewModel
@@ -53,20 +60,15 @@ import kotlin.random.Random
 @Composable
 internal fun PokedexScreen() {
     val pokedexDatabase = LocalPokedexDatabase.current
-    val vm = viewModel(PokedexViewModel::class) {
-        PokedexViewModel(
-            pokedexDatabase,
-            //context.pokedexPreferences
-        )
-    }
+    val vm = viewModel(PokedexViewModel::class) { PokedexViewModel(pokedexDatabase) }
 
-    val entries = vm.pokedexEntries//vm.pager.collectAsLazyPagingItems()
+    val entries = vm.pokedexEntriesSorted//vm.pager.collectAsLazyPagingItems()
 
-    val saved = emptyList<SavedPokemon>()// by pokedexDatabase.collectAsStateWithLifecycle(initialValue = emptyList())
+    val saved = vm.savedPokemon// by pokedexDatabase.collectAsStateWithLifecycle(initialValue = emptyList())
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    //val navController = LocalNavController.current
+    val navController = LocalNavController.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     EnterFullScreen()
@@ -150,7 +152,7 @@ internal fun PokedexScreen() {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { padding ->
         val onClick: (Pokemon) -> Unit = {
-            //it.name.let(navController::navigateToPokemonDetail)
+            it.name.let(navController::navigateToDetail)
         }
         Crossfade(targetState = vm.pokemonListType) { target ->
             when (target) {
@@ -164,19 +166,6 @@ internal fun PokedexScreen() {
                             .padding(vertical = 2.dp)
                             .fillMaxSize()
                     ) {
-                        /*items(
-                            count = entries.itemCount,
-                            key = entries.itemKey { it.url },
-                            contentType = entries.itemContentType { it }
-                        ) {
-                            val pokemon = entries[it]
-                            PokedexEntry(
-                                pokemon = pokemon,
-                                saved = saved,
-                                onClick = { pokemon?.name?.let(navController::navigateToPokemonDetail) },
-                                modifier = Modifier.animateItemPlacement()
-                            )
-                        }*/
                         items(entries) {
                             PokedexEntry(
                                 pokemon = it,
@@ -198,29 +187,6 @@ internal fun PokedexScreen() {
                             .padding(vertical = 2.dp)
                             .fillMaxSize()
                     ) {
-                        /*items(
-                            count = entries.itemCount,
-                            key = entries.itemKey { it.url },
-                            contentType = entries.itemContentType { it }
-                        ) {
-                            val pokemon = entries[it]
-                            val change = pokemon?.let { p ->
-                                state.layoutInfo.normalizedItemPosition(p.url)
-                            }
-                            PokedexEntryList(
-                                pokemon = pokemon,
-                                saved = saved,
-                                onClick = { pokemon?.name?.let(navController::navigateToPokemonDetail) },
-                                modifier = Modifier
-                                    .animateItemPlacement()
-                                    .graphicsLayer {
-                                        change?.let { c ->
-                                            translationX = c.absoluteValue * 50
-                                            translationY = -c
-                                        }
-                                    }
-                            )
-                        }*/
                         items(entries) { pokemon ->
                             val change = pokemon.let { p ->
                                 state.layoutInfo.normalizedItemPosition(p.url)
@@ -336,19 +302,8 @@ private fun PokedexEntry(
     saved: List<SavedPokemon>,
     onClick: () -> Unit,
 ) {
-    val surface = MaterialTheme.colorScheme.surface
-    val defaultSwatch = SwatchInfo(
-        rgb = surface,
-        bodyColor = Color.Blue,
-        titleColor = contentColorFor(surface)
-    )
-    var swatchInfo by remember { mutableStateOf(defaultSwatch) }
     ElevatedCard(
         onClick = onClick,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = swatchInfo.rgb,
-            contentColor = swatchInfo.titleColor
-        ),
         modifier = modifier.sizeIn(minHeight = 250.dp)
     ) {
         if (pokemon != null) {
@@ -366,53 +321,34 @@ private fun PokedexEntry(
                         Icon(Icons.Default.Bookmark, null)
                     }
                 }
-                val latestSwatch by rememberUpdatedState(newValue = swatchInfo)
-                AsyncImage(
-                    url = pokemon.imageUrl,
-                    contentDescription = pokemon.name,
-                    contentScale = ContentScale.FillWidth,
-                    colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
-                    modifier = Modifier
-                        .widthIn(max = 800.dp)
-                        .fillMaxWidth(.9f)
-                        .wrapContentHeight(Alignment.Top, true)
-                        .scale(1f, 1.8f)
-                        .blur(70.dp, BlurredEdgeTreatment.Unbounded)
-                        .alpha(.5f)
-                )
-                AsyncImage(
-                    url = pokemon.imageUrl,
-                    contentDescription = pokemon.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .widthIn(max = 500.dp)
-                        .fillMaxWidth()
-                        .aspectRatio(1.2f)
-                        .fillMaxHeight()
-                )
-                /*GlideImage(
-                    imageModel = { pokemon.imageUrl },
-                    component = rememberImageComponent {
-                        +PalettePlugin { p ->
-                            if (latestSwatch == defaultSwatch) {
-                                p.dominantSwatch?.let { s ->
-                                    swatchInfo = SwatchInfo(
-                                        rgb = s.rgb.toComposeColor(),
-                                        titleColor = s.titleTextColor.toComposeColor(),
-                                        bodyColor = s.bodyTextColor.toComposeColor()
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    loading = {
-                        Box(modifier = Modifier.matchParentSize()) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                    }
-                )*/
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    KamelImage(
+                        resource = lazyPainterResource(pokemon.imageUrl),
+                        contentDescription = pokemon.name,
+                        contentScale = ContentScale.FillWidth,
+                        colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
+                        modifier = Modifier
+                            .widthIn(max = 800.dp)
+                            .fillMaxWidth(.9f)
+                            .wrapContentHeight(Alignment.Top, true)
+                            .scale(1f, 1.8f)
+                            .blur(70.dp, BlurredEdgeTreatment.Unbounded)
+                            .alpha(.5f)
+                    )
+                    KamelImage(
+                        resource = lazyPainterResource(pokemon.imageUrl),
+                        contentDescription = pokemon.name,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .widthIn(max = 500.dp)
+                            .fillMaxWidth()
+                            .aspectRatio(1.2f)
+                            .fillMaxHeight()
+                    )
+                }
                 Text(
                     pokemon.name.firstCharCapital(),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -437,57 +373,22 @@ private fun PokedexEntryList(
     saved: List<SavedPokemon>,
     onClick: () -> Unit,
 ) {
-    val surface = MaterialTheme.colorScheme.surface
-    val defaultSwatch = SwatchInfo(
-        rgb = surface,
-        bodyColor = Color.Blue,
-        titleColor = contentColorFor(surface)
-    )
-    var swatchInfo by remember { mutableStateOf(defaultSwatch) }
     ElevatedCard(
         onClick = onClick,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = swatchInfo.rgb,
-            contentColor = swatchInfo.titleColor
-        ),
         modifier = modifier.sizeIn(minHeight = 100.dp)
     ) {
         if (pokemon != null) {
             ListItem(
-                colors = ListItemDefaults.colors(
-                    containerColor = swatchInfo.rgb,
-                    headlineColor = swatchInfo.titleColor,
-                    trailingIconColor = swatchInfo.titleColor,
-                    overlineColor = swatchInfo.titleColor,
-                ),
                 headlineText = { Text(pokemon.name.firstCharCapital()) },
                 leadingContent = {
-                    val latestSwatch by rememberUpdatedState(newValue = swatchInfo)
-                    /*GlideImage(
-                        imageModel = { pokemon.imageUrl },
-                        component = rememberImageComponent {
-                            +PalettePlugin { p ->
-                                if (latestSwatch == defaultSwatch) {
-                                    p.dominantSwatch?.let { s ->
-                                        swatchInfo = SwatchInfo(
-                                            rgb = s.rgb.toComposeColor(),
-                                            titleColor = s.titleTextColor.toComposeColor(),
-                                            bodyColor = s.bodyTextColor.toComposeColor()
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        loading = {
-                            Box(modifier = Modifier.matchParentSize()) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            }
-                        },
-                        imageOptions = ImageOptions(contentScale = ContentScale.Fit),
-                        modifier = Modifier.size(100.dp)
-                    )*/
+                    Box(contentAlignment = Alignment.Center) {
+                        KamelImage(
+                            resource = lazyPainterResource(pokemon.imageUrl),
+                            contentDescription = pokemon.name,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(100.dp)
+                        )
+                    }
                 },
                 trailingContent = {
                     if (saved.any { it.url == pokemon.url }) {
@@ -576,14 +477,14 @@ private fun DrawerContent(
     }
 }*/
 
-/*@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SortPokemon(
     pokemonSort: PokemonSort,
     onSortChange: (PokemonSort) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    /*ModalBottomSheet(onDismissRequest = onDismiss) {
         TopAppBar(title = { Text("Sort") })
         LazyColumn {
             val values = PokemonSort.values()
@@ -592,7 +493,7 @@ private fun SortPokemon(
                     leadingContent = {
                         RadioButton(selected = sort == pokemonSort, onClick = null)
                     },
-                    headlineContent = { Text(sort.name) },
+                    headlineText = { Text(sort.name) },
                     modifier = Modifier.clickable {
                         onSortChange(sort)
                         onDismiss()
@@ -602,8 +503,12 @@ private fun SortPokemon(
                 if (index != values.lastIndex) Divider()
             }
         }
-    }
-}*/
+    }*/
+}
+
+//TODO: Search
+// Show Saved Pokemon
+// Dialog to choose sorting
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -689,8 +594,6 @@ private fun EnterFullScreen() {
         onDestroy = { uiController.isSystemBarsVisible = true }
     )*/
 }
-
-private data class SwatchInfo(val rgb: Color, val titleColor: Color, val bodyColor: Color)
 
 @Composable
 private fun AnimationsPreview() {

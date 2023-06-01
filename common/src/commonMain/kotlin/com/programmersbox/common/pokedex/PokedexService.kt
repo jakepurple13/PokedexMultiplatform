@@ -3,21 +3,13 @@ package com.programmersbox.common.pokedex
 import androidx.compose.ui.graphics.Color
 import com.programmersbox.common.firstCharCapital
 import com.programmersbox.common.roundToDecimals
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.logging.SIMPLE
-import io.ktor.client.request.get
-import io.ktor.http.ContentType
-import io.ktor.http.URLBuilder
-import io.ktor.http.appendEncodedPathSegments
-import io.ktor.http.contentType
-import io.ktor.http.takeFrom
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -29,10 +21,10 @@ internal object PokedexService {
             json(Json { ignoreUnknownKeys = true })
         }
 
-        install(Logging) {
+        /*install(Logging) {
             logger = Logger.SIMPLE
             level = LogLevel.BODY
-        }
+        }*/
 
         defaultRequest {
             contentType(ContentType.Application.Json)

@@ -2,12 +2,16 @@ package com.programmersbox.common.pokedex.database
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.programmersbox.common.pokedex.Pokemon
+import com.programmersbox.common.pokedex.PokemonInfo
+import com.programmersbox.common.pokedex.list.PokemonListType
+import com.programmersbox.common.pokedex.list.PokemonSort
 import io.realm.kotlin.MutableRealm
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.asFlow
 import io.realm.kotlin.migration.AutomaticSchemaMigration
 import io.realm.kotlin.types.RealmObject
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 
 internal val LocalPokedexDatabase = staticCompositionLocalOf<PokedexDatabase> { error("Nothing here!") }
@@ -17,6 +21,7 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         Realm.open(
             RealmConfiguration.Builder(
                 setOf(
+                    PokedexSettingsDb::class,
                     PokemonDb::class,
                     PokemonInfoDb::class,
                     SavedPokemon::class,
@@ -31,10 +36,25 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         )
     }
 
+    suspend fun getSettings() = realm.initDb { PokedexSettingsDb() }
+        .asFlow()
+        .mapNotNull { it.obj }
+        .map {
+            PokedexSettings(
+                sort = PokemonSort.valueOf(it.sort),
+                listType = PokemonListType.valueOf(it.listType)
+            )
+        }
+
     suspend fun getPokemonList() = realm.initDb { PokemonDbList() }
         .asFlow()
         .mapNotNull { it.obj }
         .mapNotNull { it.listDb }
+
+    suspend fun getSavedPokemonList() = realm.initDb { PokemonDbList() }
+        .asFlow()
+        .mapNotNull { it.obj }
+        .mapNotNull { it.savedList }
 
     suspend fun insertPokemon(pokemon: Pokemon) {
         realm.updateInfo<PokemonDbList> {
@@ -45,6 +65,17 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
     suspend fun insertPokemon(pokemon: List<Pokemon>) {
         realm.updateInfo<PokemonDbList> {
             it?.listDb?.addAll(pokemon.map { p -> p.toPokemonDb() })
+        }
+    }
+
+    suspend fun getPokemonInfo(name: String) = realm.initDb { PokemonDbList() }
+        .cachedInfo
+        .find { it.name == name }
+        ?.toPokemonInfo()
+
+    suspend fun insertPokemonInfo(pokemonInfo: PokemonInfo) {
+        realm.updateInfo<PokemonDbList> {
+            it?.cachedInfo?.add(pokemonInfo.toPokemonInfoDb())
         }
     }
 
@@ -60,10 +91,43 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         }
     }
 
+    suspend fun getSinglePokemon(name: String) = realm
+        .initDb { PokemonDbList() }
+        .listDb
+        .find { it.name == name }
+
     suspend fun searchPokemon(searchQuery: String) = realm
         .initDb { PokemonDbList() }.asFlow()
         .mapNotNull { it.obj }
         .mapNotNull { it.listDb.filter { it.name.contains(searchQuery) } }
+
+    suspend fun saved(name: String) = realm
+        .initDb { PokemonDbList() }
+        .asFlow()
+        .mapNotNull { it.obj }
+        .mapNotNull { it.savedList.find { it.name == name } }
+
+    suspend fun save(savedPokemon: SavedPokemon) {
+        realm.updateInfo<PokemonDbList> {
+            it?.savedList?.add(savedPokemon)
+        }
+    }
+
+    suspend fun remove(savedPokemon: SavedPokemon) {
+        realm.updateInfo<PokemonDbList> {
+            it?.savedList?.remove(savedPokemon)
+        }
+    }
+
+    suspend fun updateSettings(
+        sort: PokemonSort? = null,
+        listType: PokemonListType? = null
+    ) {
+        realm.updateInfo<PokedexSettingsDb> { s ->
+            sort?.let { s?.sort = it.name }
+            listType?.let { s?.listType = it.name }
+        }
+    }
 }
 
 private suspend inline fun <reified T : RealmObject> Realm.updateInfo(crossinline block: MutableRealm.(T?) -> Unit) {
