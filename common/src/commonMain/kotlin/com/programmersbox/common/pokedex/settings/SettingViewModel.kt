@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.database.PokemonDbList
+import com.programmersbox.common.pokedex.database.ThemeType
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -17,10 +18,18 @@ internal class SettingViewModel(
 
     var pokemonLists by mutableStateOf(PokemonDbList())
 
+    var themeType by mutableStateOf(ThemeType.Default)
+
     init {
         viewModelScope.launch {
             pokedexDatabase.getPokemonLists()
                 .onEach { pokemonLists = it }
+                .launchIn(this)
+        }
+
+        viewModelScope.launch {
+            pokedexDatabase.getSettings()
+                .onEach { themeType = it.themeType }
                 .launchIn(this)
         }
     }
@@ -34,5 +43,9 @@ internal class SettingViewModel(
 
     fun clearInfoCache() {
         viewModelScope.launch { pokedexDatabase.clearPokemonInfoCache() }
+    }
+
+    fun changeTheme(themeType: ThemeType) {
+        viewModelScope.launch { pokedexDatabase.setTheme(themeType) }
     }
 }

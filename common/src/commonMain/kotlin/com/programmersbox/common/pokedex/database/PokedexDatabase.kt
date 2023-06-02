@@ -43,7 +43,8 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
             PokedexSettings(
                 sort = PokemonSort.valueOf(it.sort),
                 listType = PokemonListType.valueOf(it.listType),
-                hasCache = it.hasCache
+                hasCache = it.hasCache,
+                themeType = ThemeType.valueOf(it.themeType)
             )
         }
 
@@ -142,6 +143,10 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
             sort?.let { s?.sort = it.name }
             listType?.let { s?.listType = it.name }
         }
+    }
+
+    suspend fun setTheme(themeType: ThemeType) {
+        realm.updateInfo<PokedexSettingsDb> { it?.themeType = themeType.name }
     }
 }
 

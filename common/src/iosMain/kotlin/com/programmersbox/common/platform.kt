@@ -30,7 +30,7 @@ private fun UIShow() {
 }
 
 public fun MainViewController(): UIViewController = PreComposeApplication("Pokedex") {
-    MaterialTheme(
+    PokedexTheme(
         colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
     ) {
         Surface(

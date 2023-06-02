@@ -26,6 +26,7 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberWindowState
+import com.programmersbox.common.PokedexTheme
 import moe.tlaster.precompose.PreComposeWindow
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -49,7 +50,7 @@ internal fun WindowWithBar(
         onCloseRequest = onCloseRequest,
         visible = visible,
     ) {
-        MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
+        PokedexTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
             frameWindowScope()
             val hasFocus = LocalWindowInfo.current.isWindowFocused
             Surface(

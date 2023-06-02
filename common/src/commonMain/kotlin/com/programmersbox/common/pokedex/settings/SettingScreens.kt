@@ -1,13 +1,18 @@
 package com.programmersbox.common.pokedex.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -16,6 +21,7 @@ import com.programmersbox.common.LocalNavController
 import com.programmersbox.common.PokedexRed
 import com.programmersbox.common.SortingContainer
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
+import com.programmersbox.common.pokedex.database.ThemeType
 import com.programmersbox.common.pokedex.list.Animations
 import moe.tlaster.precompose.viewmodel.viewModel
 
@@ -54,6 +60,7 @@ internal fun SettingScreen() {
             modifier = Modifier
                 .padding(padding)
                 .padding(vertical = 2.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             ClearListCache(
                 onConfirm = vm::clearListCache,
@@ -64,6 +71,48 @@ internal fun SettingScreen() {
                 onConfirm = vm::clearInfoCache,
                 entryCount = vm.pokemonLists.cachedInfo.size
             )
+
+            ThemeOption(
+                currentThemeType = vm.themeType,
+                onThemeChange = vm::changeTheme
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeOption(
+    currentThemeType: ThemeType,
+    onThemeChange: (ThemeType) -> Unit
+) {
+    var showOptions by remember { mutableStateOf(false) }
+
+    ElevatedCard(
+        onClick = { showOptions = !showOptions }
+    ) {
+        ListItem(
+            headlineText = { Text("Change Theme") },
+            overlineText = { Text(currentThemeType.name) },
+        )
+        AnimatedVisibility(showOptions) {
+            Column(modifier = Modifier.padding(start = 24.dp)) {
+                ThemeType.values().forEach {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.extraLarge)
+                            .clickable { onThemeChange(it) }
+                            .padding(4.dp)
+                    ) {
+                        RadioButton(
+                            selected = it == currentThemeType,
+                            onClick = null
+                        )
+                        Text(it.name)
+                    }
+                }
+            }
         }
     }
 }
