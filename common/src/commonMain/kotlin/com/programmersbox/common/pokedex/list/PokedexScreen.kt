@@ -19,7 +19,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -197,13 +200,12 @@ internal fun PokedexScreen() {
                                     key = { it.url },
                                     contentType = { it }
                                 ) { pokemon ->
-                                    val change = pokemon.let { p ->
-                                        listState.layoutInfo.normalizedItemPosition(p.url)
-                                    }
+                                    val change = listState.layoutInfo.normalizedItemPosition(pokemon.url)
                                     PokedexEntryList(
                                         pokemon = pokemon,
                                         saved = saved,
                                         onClick = { onClick(pokemon) },
+                                        change = change,
                                         modifier = Modifier
                                             .animateItemPlacement()
                                             .graphicsLayer {
@@ -333,7 +335,7 @@ private fun PokedexEntry(
                 ) {
                     Text(pokemon.pokedexEntry)
                     if (saved.any { it.url == pokemon.url }) {
-                        Icon(Icons.Default.Bookmark, null)
+                        Pokeball(sizeDp = 24.dp)
                     }
                 }
                 Box(
@@ -375,7 +377,7 @@ private fun PokedexEntry(
                 modifier = Modifier
                     .padding(4.dp)
                     .fillMaxSize()
-            ) { CircularProgressIndicator() }
+            ) { PokeballLoading() }
         }
     }
 }
@@ -386,6 +388,7 @@ private fun PokedexEntryList(
     modifier: Modifier = Modifier,
     pokemon: Pokemon?,
     saved: List<SavedPokemon>,
+    change: Float,
     onClick: () -> Unit,
 ) {
     ElevatedCard(
@@ -407,7 +410,13 @@ private fun PokedexEntryList(
                 },
                 trailingContent = {
                     if (saved.any { it.url == pokemon.url }) {
-                        Icon(Icons.Default.Bookmark, null)
+                        Pokeball(
+                            sizeDp = 24.dp,
+                            modifier = Modifier.graphicsLayer {
+                                translationX = -change.absoluteValue * 50
+                                translationY = change
+                            }
+                        )
                     }
                 },
                 overlineText = { Text("#${pokemon.pokedexEntry}") },
@@ -419,7 +428,7 @@ private fun PokedexEntryList(
                 modifier = Modifier
                     .padding(4.dp)
                     .fillMaxSize()
-            ) { CircularProgressIndicator() }
+            ) { PokeballLoading() }
         }
     }
 }

@@ -4,10 +4,7 @@ package com.programmersbox.common.pokedex.detail
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -17,7 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -411,12 +411,10 @@ private fun ContentHeader(
             IconButton(
                 onClick = { if (isSaved) onDelete() else onSave() }
             ) {
-                Crossfade(targetState = isSaved, label = "") { target ->
-                    Icon(
-                        if (target) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        null,
-                    )
-                }
+                Pokeball(
+                    sizeDp = 24.dp,
+                    modifier = Modifier.alpha(animateFloatAsState(if (isSaved) 1f else .5f).value)
+                )
             }
         },
         colors = TopAppBarDefaults.smallTopAppBarColors(),
