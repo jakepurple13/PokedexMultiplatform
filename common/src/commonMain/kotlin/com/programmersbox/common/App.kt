@@ -1,5 +1,7 @@
 package com.programmersbox.common
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -15,6 +17,7 @@ import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.NavOptions
 import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.navigation.rememberNavigator
+import moe.tlaster.precompose.navigation.transition.NavTransition
 
 @Composable
 internal fun App() {
@@ -26,21 +29,18 @@ internal fun App() {
         Surface {
             NavHost(
                 navigator = navigator,
-                initialRoute = PokedexScreens.Pokedex.route
+                initialRoute = PokedexScreens.Pokedex.route,
+                navTransition = NavTransition(
+                    createTransition = slideInHorizontally { it },
+                    destroyTransition = slideOutHorizontally { it },
+                    resumeTransition = slideInHorizontally { -it },
+                    pauseTransition = slideOutHorizontally { -it },
+                )
             ) {
                 scene(PokedexScreens.Pokedex.route) { PokedexScreen() }
                 scene(PokedexScreens.Detail.route) { PokedexDetailScreen(it) }
                 scene(PokedexScreens.Search.route) { SearchScreen() }
                 scene(PokedexScreens.Settings.route) { SettingScreen() }
-                //this.dialog()
-                /*floating(PokedexScreens.Sorting.route) {
-                    SortPokemon(
-                        PokemonSort.Index,
-                        onSortChange = {},
-                        onDismiss = { navigator.popBackStack() }
-                    )
-                }*/
-                //floating()
             }
         }
     }
