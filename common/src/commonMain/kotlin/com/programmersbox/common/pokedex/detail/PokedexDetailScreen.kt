@@ -415,7 +415,7 @@ private fun ContentHeader(
                     Icon(
                         if (target) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         null,
-                    )*/
+                    )
                 }
             }
         },
