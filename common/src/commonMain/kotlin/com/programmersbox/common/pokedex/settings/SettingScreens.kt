@@ -100,7 +100,7 @@ private fun ClearListCache(
         }
     }
 
-    Card(
+    ElevatedCard(
         onClick = { showDialog = true }
     ) {
         ListItem(
@@ -142,7 +142,7 @@ private fun ClearInfoCache(
         }
     }
 
-    Card(
+    ElevatedCard(
         onClick = { showDialog = true }
     ) {
         ListItem(
