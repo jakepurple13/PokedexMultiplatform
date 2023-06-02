@@ -50,6 +50,7 @@ internal class SavedPokemon : RealmObject {
 internal class PokedexSettingsDb : RealmObject {
     var sort: String = PokemonSort.Index.name
     var listType: String = PokemonListType.Grid.name
+    var hasCache: Boolean = false
 }
 
 internal object PokemonConverters {
@@ -108,5 +109,6 @@ internal fun PokemonInfo.toPokemonInfoDb() = PokemonInfoDb().apply {
 
 internal class PokedexSettings(
     val sort: PokemonSort,
-    val listType: PokemonListType
+    val listType: PokemonListType,
+    val hasCache: Boolean
 )

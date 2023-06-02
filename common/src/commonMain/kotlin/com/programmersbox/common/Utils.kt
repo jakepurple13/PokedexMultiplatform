@@ -21,6 +21,7 @@ internal fun Float.roundToDecimals(decimals: Int): Float {
 
 internal val MaleColor = Color(0xff448aff)
 internal val FemaleColor = Color(0xfff06292)
+internal val PokedexRed = Color(0xFFe74c3c)
 
 internal class CustomAdaptive(private val minSize: Dp) : GridCells {
     init {

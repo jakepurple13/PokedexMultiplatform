@@ -7,12 +7,12 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.programmersbox.common.pokedex.PokedexService
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.database.SavedPokemon
-import com.programmersbox.common.pokedex.database.toPokemon
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.viewmodel.ViewModel
@@ -38,12 +38,11 @@ internal class PokedexViewModel(
     init {
         viewModelScope.launch {
             pokedexDatabase.getPokemonList()
-                .map { it.map { it.toPokemon() } }
                 .onEach {
                     pokedexEntries.clear()
                     pokedexEntries.addAll(it)
                 }
-                .launchIn(viewModelScope)
+                .launchIn(this)
         }
         viewModelScope.launch {
             pokedexDatabase.getSavedPokemonList()
@@ -51,7 +50,7 @@ internal class PokedexViewModel(
                     savedPokemon.clear()
                     savedPokemon.addAll(it)
                 }
-                .launchIn(viewModelScope)
+                .launchIn(this)
         }
         viewModelScope.launch {
             pokedexDatabase.getSettings()
@@ -59,14 +58,20 @@ internal class PokedexViewModel(
                     pokemonSort = it.sort
                     pokemonListType = it.listType
                 }
-                .launchIn(viewModelScope)
+                .launchIn(this)
         }
-        /*viewModelScope.launch {
-            PokedexService.fetchPokemonList(0).onSuccess {
-                pokedexDatabase.clearPokemonCache()
-                pokedexDatabase.insertPokemon(it.results)
-            }
-        }*/
+        viewModelScope.launch {
+            pokedexDatabase.getSettings()
+                .filter { !it.hasCache }
+                .onEach {
+                    PokedexService.fetchPokemonList(0).onSuccess { p ->
+                        pokedexDatabase.clearPokemonCache()
+                        pokedexDatabase.insertPokemon(p.results)
+                        pokedexDatabase.setCacheState(true)
+                    }
+                }
+                .launchIn(this)
+        }
     }
 
     /*@OptIn(ExperimentalPagingApi::class, ExperimentalCoroutinesApi::class)

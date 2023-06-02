@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.programmersbox.common.*
 import com.programmersbox.common.pokedex.PokemonInfo
@@ -311,11 +312,16 @@ private fun ShowImages(pokemon: PokemonInfo) {
                         }
                     }
                     sprite.value.forEach {
-                        ElevatedCard {
+                        ElevatedCard(
+                            modifier = Modifier
+                                .size(AllImageSize.second)
+                                .padding(vertical = 2.dp)
+                        ) {
                             ImageWithBlurImage(
                                 url = it,
                                 name = pokemon.name,
-                                modifier = Modifier.padding(vertical = 2.dp)
+                                blurSize = AllImageSize.second,
+                                imageSize = AllImageSize.first,
                             ) { iconChoice(Modifier.align(Alignment.TopEnd)) }
                         }
                     }
@@ -426,6 +432,8 @@ private fun ImageWithBlurImage(
     url: String,
     name: String,
     modifier: Modifier = Modifier,
+    blurSize: Dp = 300.dp,
+    imageSize: Dp = 240.dp,
     additionalContent: @Composable BoxScope.() -> Unit = {}
 ) {
     Box(
@@ -438,7 +446,7 @@ private fun ImageWithBlurImage(
             contentScale = ContentScale.FillWidth,
             colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
             modifier = Modifier
-                .size(300.dp)
+                .size(blurSize)
                 .fillMaxWidth(.9f)
                 .wrapContentHeight(Alignment.Top, true)
                 .scale(1f, 1.8f)
@@ -450,7 +458,7 @@ private fun ImageWithBlurImage(
             contentDescription = name,
             contentScale = ContentScale.Fit,
             modifier = Modifier
-                .size(240.dp)
+                .size(imageSize)
                 .fillMaxWidth()
                 .aspectRatio(1.2f)
                 .fillMaxHeight()

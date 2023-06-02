@@ -19,10 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -92,7 +89,7 @@ internal fun PokedexScreen() {
         Scaffold(
             topBar = {
                 Column(
-                    modifier = Modifier.background(Color(0xFFe74c3c))
+                    modifier = Modifier.background(PokedexRed)
                 ) {
                     Animations(Modifier.padding(TopAppBarDefaults.windowInsets.asPaddingValues()))
                     TopAppBar(
@@ -115,9 +112,13 @@ internal fun PokedexScreen() {
                             IconButton(
                                 onClick = { navController.navigate(PokedexScreens.Search) }
                             ) { Icon(Icons.Default.Search, null) }
+
+                            IconButton(
+                                onClick = { navController.navigate(PokedexScreens.Settings) }
+                            ) { Icon(Icons.Default.Settings, null) }
                         },
                         colors = TopAppBarDefaults.smallTopAppBarColors(
-                            containerColor = Color(0xFFe74c3c)
+                            containerColor = PokedexRed
                         )
                     )
                 }
@@ -434,7 +435,12 @@ private fun DrawerContent(
         verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier.fillMaxHeight()
     ) {
-        stickyHeader { TopAppBar(title = { Text("Saved Pokemon") }) }
+        stickyHeader {
+            TopAppBar(
+                title = { Text("Saved Pokemon") },
+                actions = { Text(saved.size.toString()) }
+            )
+        }
         items(saved) {
             Card(
                 onClick = { navController.navigateToDetail(it.name) },

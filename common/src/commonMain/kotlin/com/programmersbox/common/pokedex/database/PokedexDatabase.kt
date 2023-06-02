@@ -42,14 +42,19 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         .map {
             PokedexSettings(
                 sort = PokemonSort.valueOf(it.sort),
-                listType = PokemonListType.valueOf(it.listType)
+                listType = PokemonListType.valueOf(it.listType),
+                hasCache = it.hasCache
             )
         }
+
+    suspend fun getPokemonLists() = realm.initDb { PokemonDbList() }
+        .asFlow()
+        .mapNotNull { it.obj }
 
     suspend fun getPokemonList() = realm.initDb { PokemonDbList() }
         .asFlow()
         .mapNotNull { it.obj }
-        .mapNotNull { it.listDb }
+        .mapNotNull { it.listDb.map { p -> p.toPokemon() } }
 
     suspend fun getSavedPokemonList() = realm.initDb { PokemonDbList() }
         .asFlow()
@@ -89,6 +94,16 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         realm.updateInfo<PokemonDbList> {
             it?.listDb?.clear()
         }
+    }
+
+    suspend fun clearPokemonInfoCache() {
+        realm.updateInfo<PokemonDbList> {
+            it?.cachedInfo?.clear()
+        }
+    }
+
+    suspend fun setCacheState(state: Boolean) {
+        realm.updateInfo<PokedexSettingsDb> { it?.hasCache = state }
     }
 
     suspend fun getSinglePokemon(name: String) = realm

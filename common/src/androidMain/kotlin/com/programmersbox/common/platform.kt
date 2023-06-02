@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 public actual fun getPlatformName(): String {
@@ -89,3 +91,5 @@ public actual fun DrawerContainer(
         content = content
     )
 }
+
+public actual val AllImageSize: Pair<Dp, Dp> = 100.dp to 160.dp

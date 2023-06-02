@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.programmersbox.common.LocalNavController
+import com.programmersbox.common.PokedexRed
 import com.programmersbox.common.firstCharCapital
 import com.programmersbox.common.navigateToDetail
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
@@ -41,7 +42,7 @@ internal fun SearchScreen() {
     Scaffold(
         topBar = {
             Column(
-                modifier = Modifier.background(Color(0xFFe74c3c))
+                modifier = Modifier.background(PokedexRed)
             ) {
                 Animations(Modifier.padding(TopAppBarDefaults.windowInsets.asPaddingValues()))
                 TopAppBar(
@@ -73,7 +74,7 @@ internal fun SearchScreen() {
                         }
                     },
                     colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = Color(0xFFe74c3c)
+                        containerColor = PokedexRed
                     ),
                 )
             }

@@ -10,6 +10,7 @@ import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.detail.PokedexDetailScreen
 import com.programmersbox.common.pokedex.list.PokedexScreen
 import com.programmersbox.common.pokedex.search.SearchScreen
+import com.programmersbox.common.pokedex.settings.SettingScreen
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.NavOptions
 import moe.tlaster.precompose.navigation.Navigator
@@ -30,6 +31,7 @@ internal fun App() {
                 scene(PokedexScreens.Pokedex.route) { PokedexScreen() }
                 scene(PokedexScreens.Detail.route) { PokedexDetailScreen(it) }
                 scene(PokedexScreens.Search.route) { SearchScreen() }
+                scene(PokedexScreens.Settings.route) { SettingScreen() }
                 //this.dialog()
                 /*floating(PokedexScreens.Sorting.route) {
                     SortPokemon(
@@ -49,7 +51,8 @@ internal val LocalNavController = staticCompositionLocalOf<Navigator> { error("N
 internal enum class PokedexScreens(val route: String) {
     Pokedex("pokedex"),
     Detail("detail/{name}"),
-    Search("search")
+    Search("search"),
+    Settings("settings")
 }
 
 internal fun Navigator.navigateToDetail(name: String) =

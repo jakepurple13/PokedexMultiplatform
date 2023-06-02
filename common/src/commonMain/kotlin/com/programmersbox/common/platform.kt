@@ -7,6 +7,7 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 
 public expect fun getPlatformName(): String
 
@@ -31,3 +32,5 @@ public expect fun DrawerContainer(
     drawerContent: @Composable () -> Unit,
     content: @Composable () -> Unit
 )
+
+public expect val AllImageSize: Pair<Dp, Dp>

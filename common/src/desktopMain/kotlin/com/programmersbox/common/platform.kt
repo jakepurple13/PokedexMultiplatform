@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import javazoom.jl.player.Player
@@ -109,3 +110,5 @@ public actual fun DrawerContainer(
         content = content
     )
 }
+
+public actual val AllImageSize: Pair<Dp, Dp> = 240.dp to 300.dp
