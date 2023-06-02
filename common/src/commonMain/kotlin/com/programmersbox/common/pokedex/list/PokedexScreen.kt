@@ -14,7 +14,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -151,7 +150,7 @@ internal fun PokedexScreen() {
                     when (target) {
                         PokemonListType.Grid -> {
                             LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
+                                columns = CustomAdaptive(500.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp),
                                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                                 contentPadding = padding,

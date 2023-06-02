@@ -13,6 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import moe.tlaster.precompose.PreComposeApplication
+import platform.AVFAudio.AVAudioPlayer
+import platform.Foundation.NSData
+import platform.Foundation.NSURL
+import platform.Foundation.dataWithContentsOfURL
 import platform.UIKit.UIViewController
 
 public actual fun getPlatformName(): String {
@@ -42,7 +46,10 @@ public fun MainViewController(): UIViewController = PreComposeApplication("Poked
 }
 
 public actual suspend fun playAudio(url: String) {
-
+    val audioUrl = NSURL.URLWithString(url)
+    val data = audioUrl?.let { NSData.dataWithContentsOfURL(it) }
+    val player = data?.let { AVAudioPlayer(it, null, null) }
+    player?.play()
 }
 
 @Composable

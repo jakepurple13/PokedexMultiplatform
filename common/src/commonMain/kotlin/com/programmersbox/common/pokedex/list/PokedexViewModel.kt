@@ -62,11 +62,10 @@ internal class PokedexViewModel(
                 .launchIn(viewModelScope)
         }
         /*viewModelScope.launch {
-            PokedexService.fetchPokemonList(0)
-                .onSuccess {
-                    pokedexDatabase.clearPokemonCache()
-                    pokedexDatabase.insertPokemon(it.results)
-                }
+            PokedexService.fetchPokemonList(0).onSuccess {
+                pokedexDatabase.clearPokemonCache()
+                pokedexDatabase.insertPokemon(it.results)
+            }
         }*/
     }
 

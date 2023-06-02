@@ -105,7 +105,7 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         .initDb { PokemonDbList() }
         .asFlow()
         .mapNotNull { it.obj }
-        .mapNotNull { it.savedList.find { it.name == name } }
+        .map { it.savedList.find { it.name == name } }
 
     suspend fun save(savedPokemon: SavedPokemon) {
         realm.updateInfo<PokemonDbList> {
@@ -115,7 +115,7 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
 
     suspend fun remove(savedPokemon: SavedPokemon) {
         realm.updateInfo<PokemonDbList> {
-            it?.savedList?.remove(savedPokemon)
+            it?.savedList?.removeAll { s -> s.url == savedPokemon.url }
         }
     }
 

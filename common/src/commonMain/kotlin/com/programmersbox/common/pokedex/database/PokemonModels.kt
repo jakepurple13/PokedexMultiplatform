@@ -3,6 +3,7 @@ package com.programmersbox.common.pokedex.database
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.PokemonDescription
 import com.programmersbox.common.pokedex.PokemonInfo
+import com.programmersbox.common.pokedex.Sprites
 import com.programmersbox.common.pokedex.list.PokemonListType
 import com.programmersbox.common.pokedex.list.PokemonSort
 import io.realm.kotlin.ext.realmListOf
@@ -35,6 +36,7 @@ internal class PokemonInfoDb : RealmObject {
     var stats: String = ""
     var description: String? = null
     var experience: Int = 0
+    var sprites: String? = null
 }
 
 internal class SavedPokemon : RealmObject {
@@ -67,6 +69,10 @@ internal object PokemonConverters {
 
     fun toDescription(descriptionString: String) =
         json.decodeFromString<PokemonDescription>(descriptionString)
+
+    fun fromSprites(sprites: Sprites) = json.encodeToString(sprites)
+
+    fun toSprites(sprites: String) = json.decodeFromString<Sprites>(sprites)
 }
 
 internal fun PokemonDb.toPokemon() = Pokemon(name = name, url = url, page = page)
@@ -84,7 +90,8 @@ internal fun PokemonInfoDb.toPokemonInfo() = PokemonInfo(
     types = PokemonConverters.toTypes(types),
     stats = PokemonConverters.toStats(stats),
     pokemonDescription = description?.let { PokemonConverters.toDescription(it) },
-    experience = experience
+    experience = experience,
+    sprites = sprites?.let { PokemonConverters.toSprites(it) }
 )
 
 internal fun PokemonInfo.toPokemonInfoDb() = PokemonInfoDb().apply {
@@ -96,6 +103,7 @@ internal fun PokemonInfo.toPokemonInfoDb() = PokemonInfoDb().apply {
     stats = PokemonConverters.fromStats(this@toPokemonInfoDb.stats)
     description = pokemonDescription?.let { PokemonConverters.fromDescription(it) }
     experience = this@toPokemonInfoDb.experience
+    sprites = this@toPokemonInfoDb.sprites?.let { PokemonConverters.fromSprites(it) }
 }
 
 internal class PokedexSettings(

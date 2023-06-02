@@ -34,7 +34,7 @@ internal object PokedexService {
         }
     }
 
-    const val PAGE_SIZE: Int = 2000
+    private const val PAGE_SIZE: Int = 2000
 
     suspend fun fetchPokemonList(page: Int): Result<PokemonResponse> = fetchPokemonList(
         limit = PAGE_SIZE,
@@ -100,6 +100,7 @@ internal data class PokemonInfo(
     val types: List<TypeResponse>,
     val stats: List<Stats>,
     var pokemonDescription: PokemonDescription? = null,
+    val sprites: Sprites?
 ) {
 
     val cryUrl
@@ -107,12 +108,14 @@ internal data class PokemonInfo(
             "https://play.pokemonshowdown.com/audio/cries/${name.lowercase().replace("-", "")}.mp3"
 
     val imageUrl: String
-        get() {
-            return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png"
-        }
+        get() = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png"
+
+    val shinyImageUrl: String
+        get() = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$id.png"
 
     //String.format("%.1f KG", weight.toFloat() / 10)
     fun getWeightString(): String = "${(weight.toFloat() / 10).roundToDecimals(1)} KG"
+
     //String.format("%.1f M", height.toFloat() / 10)
     fun getHeightString(): String = "${(height.toFloat() / 10).roundToDecimals(1)} M"
 
@@ -185,7 +188,7 @@ internal data class PokemonDescription(
     @SerialName("flavor_text_entries")
     val flavorTextEntries: List<FlavorText>,
 ) {
-    val tag = "en"
+    private val tag = "en"
     val filtered by lazy {
         flavorTextEntries
             .filter { it.language.name == tag }
@@ -217,3 +220,86 @@ internal data class FlavorLanguage(val name: String)
 
 @Serializable
 internal data class Version(val name: String)
+
+@Serializable
+internal data class Sprites(
+    @SerialName("back_default")
+    var backDefault: String? = null,
+    @SerialName("back_female")
+    var backFemale: String? = null,
+    @SerialName("back_shiny")
+    var backShiny: String? = null,
+    @SerialName("back_shiny_female")
+    var backShinyFemale: String? = null,
+    @SerialName("front_default")
+    var frontDefault: String? = null,
+    @SerialName("front_female")
+    var frontFemale: String? = null,
+    @SerialName("front_shiny")
+    var frontShiny: String? = null,
+    @SerialName("front_shiny_female")
+    var frontShinyFemale: String? = null,
+    @SerialName("other")
+    var other: Other?
+) {
+    private val spriteList = listOfNotNull(
+        backDefault,
+        backShiny,
+        frontDefault,
+        frontShiny,
+        other?.home?.frontDefault,
+        other?.home?.frontShiny,
+    )
+
+    private val femaleSprites = listOfNotNull(
+        backFemale,
+        backShinyFemale,
+        frontFemale,
+        frontShinyFemale,
+        other?.home?.frontFemale,
+        other?.home?.frontShinyFemale,
+    )
+
+    val spriteMap = mapOf(
+        SpriteType.Default to spriteList,
+        SpriteType.Female to femaleSprites
+    )
+}
+
+internal enum class SpriteType { Default, Female }
+
+@Serializable
+internal data class DreamWorld(
+    @SerialName("front_default")
+    var frontDefault: String? = null,
+    @SerialName("front_female")
+    var frontFemale: String? = null
+)
+
+@Serializable
+internal data class OfficialArtwork(
+    @SerialName("front_default")
+    var frontDefault: String? = null
+)
+
+@Serializable
+internal data class Home(
+    @SerialName("front_default")
+    var frontDefault: String? = null,
+    @SerialName("front_female")
+    var frontFemale: String? = null,
+    @SerialName("front_shiny")
+    var frontShiny: String? = null,
+    @SerialName("front_shiny_female")
+    var frontShinyFemale: String? = null
+)
+
+@Serializable
+internal data class Other(
+    @SerialName("dream_world")
+    var dreamWorld: DreamWorld?,
+    @SerialName("home")
+    var home: Home?,
+    @SerialName("official-artwork")
+    var officialArtwork: OfficialArtwork?
+)

@@ -2,6 +2,7 @@
 
 package com.programmersbox.common.pokedex.detail
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -13,9 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -30,10 +29,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.programmersbox.common.LocalNavController
-import com.programmersbox.common.ScrollbarSupport
-import com.programmersbox.common.firstCharCapital
+import com.programmersbox.common.*
 import com.programmersbox.common.pokedex.PokemonInfo
+import com.programmersbox.common.pokedex.SpriteType
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import io.kamel.image.KamelImage
 import io.kamel.image.lazyPainterResource
@@ -122,7 +120,7 @@ private fun ContentScreen(
     onDelete: () -> Unit,
     onPlayCry: (String) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         topBar = {
             ContentHeader(
@@ -138,7 +136,7 @@ private fun ContentScreen(
     ) { padding -> ContentBody(pokemon = pokemon, paddingValues = padding) }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun ContentBody(
     pokemon: PokemonInfo,
@@ -154,34 +152,11 @@ private fun ContentBody(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                KamelImage(
-                    resource = lazyPainterResource(pokemon.imageUrl),
-                    contentDescription = pokemon.name,
-                    contentScale = ContentScale.FillWidth,
-                    colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
-                    modifier = Modifier
-                        .size(300.dp)
-                        .fillMaxWidth(.9f)
-                        .wrapContentHeight(Alignment.Top, true)
-                        .scale(1f, 1.8f)
-                        .blur(70.dp, BlurredEdgeTreatment.Unbounded)
-                        .alpha(.5f)
-                )
-                KamelImage(
-                    resource = lazyPainterResource(pokemon.imageUrl),
-                    contentDescription = pokemon.name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(240.dp)
-                        .fillMaxWidth()
-                        .aspectRatio(1.2f)
-                        .fillMaxHeight()
-                )
-            }
+            ImageWithBlurImage(
+                url = pokemon.imageUrl,
+                name = pokemon.name,
+                modifier = Modifier
+            )
 
             Text(
                 pokemon.name.firstCharCapital(),
@@ -253,6 +228,8 @@ private fun ContentBody(
                 }
             }
 
+            ShowImages(pokemon)
+
             Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
@@ -277,6 +254,74 @@ private fun ContentBody(
                 .padding(end = 4.dp)
                 .align(Alignment.CenterEnd)
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun ShowImages(pokemon: PokemonInfo) {
+    pokemon.sprites?.spriteMap?.let { spritesList ->
+        var showMoreImages by remember { mutableStateOf(false) }
+
+        ElevatedCard(
+            onClick = { showMoreImages = !showMoreImages }
+        ) {
+            Text(
+                "Show All Images",
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+
+        AnimatedVisibility(showMoreImages) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                spritesList.forEach { sprite ->
+                    val iconChoice: @Composable (Modifier) -> Unit = when (sprite.key) {
+                        SpriteType.Default -> {
+                            if (spritesList[SpriteType.Female]?.isEmpty() == true) {
+                                {
+                                    Row(it) {
+                                        Icon(Icons.Default.Male, null, tint = MaleColor)
+                                        Icon(Icons.Default.Female, null, tint = FemaleColor)
+                                    }
+                                }
+                            } else {
+                                {
+                                    Icon(
+                                        Icons.Default.Male,
+                                        null,
+                                        modifier = it,
+                                        tint = MaleColor
+                                    )
+                                }
+                            }
+                        }
+
+                        SpriteType.Female -> {
+                            {
+                                Icon(
+                                    Icons.Default.Female,
+                                    null,
+                                    modifier = it,
+                                    tint = FemaleColor
+                                )
+                            }
+                        }
+                    }
+                    sprite.value.forEach {
+                        ElevatedCard {
+                            ImageWithBlurImage(
+                                url = it,
+                                name = pokemon.name,
+                                modifier = Modifier.padding(vertical = 2.dp)
+                            ) { iconChoice(Modifier.align(Alignment.TopEnd)) }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -374,4 +419,42 @@ private fun ContentHeader(
         colors = TopAppBarDefaults.smallTopAppBarColors(),
         scrollBehavior = scrollBehavior
     )
+}
+
+@Composable
+private fun ImageWithBlurImage(
+    url: String,
+    name: String,
+    modifier: Modifier = Modifier,
+    additionalContent: @Composable BoxScope.() -> Unit = {}
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+    ) {
+        KamelImage(
+            resource = lazyPainterResource(url),
+            contentDescription = name,
+            contentScale = ContentScale.FillWidth,
+            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
+            modifier = Modifier
+                .size(300.dp)
+                .fillMaxWidth(.9f)
+                .wrapContentHeight(Alignment.Top, true)
+                .scale(1f, 1.8f)
+                .blur(70.dp, BlurredEdgeTreatment.Unbounded)
+                .alpha(.5f)
+        )
+        KamelImage(
+            resource = lazyPainterResource(url),
+            contentDescription = name,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(240.dp)
+                .fillMaxWidth()
+                .aspectRatio(1.2f)
+                .fillMaxHeight()
+        )
+        additionalContent()
+    }
 }
