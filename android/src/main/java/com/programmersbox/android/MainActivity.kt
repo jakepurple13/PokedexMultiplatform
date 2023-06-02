@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import com.programmersbox.common.PokedexTheme
 import com.programmersbox.common.UIShow
+import com.programmersbox.common.pokedex.colors.PokedexTheme
 import moe.tlaster.precompose.lifecycle.PreComposeActivity
 import moe.tlaster.precompose.lifecycle.setContent
 

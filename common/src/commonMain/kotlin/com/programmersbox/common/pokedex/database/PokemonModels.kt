@@ -117,5 +117,6 @@ internal class PokedexSettings(
 
 internal enum class ThemeType {
     Default,
-    Pokedex
+    Pokedex,
+    Blue
 }

@@ -1,4 +1,4 @@
-package com.programmersbox.common
+package com.programmersbox.common.pokedex.colors
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import com.programmersbox.common.LocalNavController
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.database.ThemeType
@@ -47,6 +48,7 @@ internal fun chosenColorScheme(
                 value = when (it) {
                     ThemeType.Default -> default
                     ThemeType.Pokedex -> if (darkTheme) DarkColors else LightColors
+                    ThemeType.Blue -> if (darkTheme) BlueDarkColors else BlueLightColors
                 }
             }
             .launchIn(this)
