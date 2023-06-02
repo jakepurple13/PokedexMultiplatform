@@ -17,10 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -58,7 +55,7 @@ internal fun PokedexDetailScreen(backStackEntry: BackStackEntry) {
             )
 
             DetailState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(
+                PokeballLoading(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -418,7 +415,7 @@ private fun ContentHeader(
                     Icon(
                         if (target) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         null,
-                    )
+                    )*/
                 }
             }
         },

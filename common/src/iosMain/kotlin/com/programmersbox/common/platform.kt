@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import com.programmersbox.common.pokedex.colors.PokedexTheme
 import moe.tlaster.precompose.PreComposeApplication
 import platform.AVFAudio.AVAudioPlayer
@@ -56,7 +57,7 @@ public actual suspend fun playAudio(url: String) {
 
 @Composable
 public actual fun SortingContainer(onDismiss: () -> Unit, block: @Composable () -> Unit) {
-
+    Popup(onDismissRequest = onDismiss) { block() }
 }
 
 @Composable
