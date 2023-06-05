@@ -157,10 +157,10 @@ internal fun PokedexScreen() {
                                 columns = CustomAdaptive(500.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp),
                                 horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                contentPadding = padding,
                                 state = gridState,
                                 modifier = Modifier
                                     .padding(vertical = 2.dp)
+                                    .padding(padding)
                                     .fillMaxSize()
                             ) {
                                 items(
@@ -189,10 +189,10 @@ internal fun PokedexScreen() {
                         PokemonListType.List -> {
                             LazyColumn(
                                 verticalArrangement = Arrangement.spacedBy(2.dp),
-                                contentPadding = padding,
                                 state = listState,
                                 modifier = Modifier
                                     .padding(vertical = 2.dp)
+                                    .padding(padding)
                                     .fillMaxSize()
                             ) {
                                 items(
