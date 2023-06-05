@@ -36,42 +36,37 @@ internal class PokedexViewModel(
     val savedPokemon = mutableStateListOf<SavedPokemon>()
 
     init {
-        viewModelScope.launch {
-            pokedexDatabase.getPokemonList()
-                .onEach {
-                    pokedexEntries.clear()
-                    pokedexEntries.addAll(it)
+        pokedexDatabase.getPokemonList()
+            .onEach {
+                pokedexEntries.clear()
+                pokedexEntries.addAll(it)
+            }
+            .launchIn(viewModelScope)
+
+        pokedexDatabase.getSavedPokemonList()
+            .onEach {
+                savedPokemon.clear()
+                savedPokemon.addAll(it)
+            }
+            .launchIn(viewModelScope)
+
+        pokedexDatabase.getSettings()
+            .onEach {
+                pokemonSort = it.sort
+                pokemonListType = it.listType
+            }
+            .launchIn(viewModelScope)
+
+        pokedexDatabase.getSettings()
+            .filter { !it.hasCache }
+            .onEach {
+                PokedexService.fetchPokemonList(0).onSuccess { p ->
+                    pokedexDatabase.clearPokemonCache()
+                    pokedexDatabase.insertPokemon(p.results)
+                    pokedexDatabase.setCacheState(true)
                 }
-                .launchIn(this)
-        }
-        viewModelScope.launch {
-            pokedexDatabase.getSavedPokemonList()
-                .onEach {
-                    savedPokemon.clear()
-                    savedPokemon.addAll(it)
-                }
-                .launchIn(this)
-        }
-        viewModelScope.launch {
-            pokedexDatabase.getSettings()
-                .onEach {
-                    pokemonSort = it.sort
-                    pokemonListType = it.listType
-                }
-                .launchIn(this)
-        }
-        viewModelScope.launch {
-            pokedexDatabase.getSettings()
-                .filter { !it.hasCache }
-                .onEach {
-                    PokedexService.fetchPokemonList(0).onSuccess { p ->
-                        pokedexDatabase.clearPokemonCache()
-                        pokedexDatabase.insertPokemon(p.results)
-                        pokedexDatabase.setCacheState(true)
-                    }
-                }
-                .launchIn(this)
-        }
+            }
+            .launchIn(viewModelScope)
     }
 
     /*@OptIn(ExperimentalPagingApi::class, ExperimentalCoroutinesApi::class)

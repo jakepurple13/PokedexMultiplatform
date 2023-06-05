@@ -21,17 +21,13 @@ internal class SettingViewModel(
     var themeType by mutableStateOf(ThemeType.Default)
 
     init {
-        viewModelScope.launch {
-            pokedexDatabase.getPokemonLists()
-                .onEach { pokemonLists = it }
-                .launchIn(this)
-        }
+        pokedexDatabase.getPokemonLists()
+            .onEach { pokemonLists = it }
+            .launchIn(viewModelScope)
 
-        viewModelScope.launch {
-            pokedexDatabase.getSettings()
-                .onEach { themeType = it.themeType }
-                .launchIn(this)
-        }
+        pokedexDatabase.getSettings()
+            .onEach { themeType = it.themeType }
+            .launchIn(viewModelScope)
     }
 
     fun clearListCache() {

@@ -28,15 +28,18 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
                     PokemonDbList::class
                 )
             )
-                .schemaVersion(22)
+                .schemaVersion(23)
                 .name(name)
                 .migration(AutomaticSchemaMigration { })
-                .deleteRealmIfMigrationNeeded()
+                //.deleteRealmIfMigrationNeeded()
                 .build()
         )
     }
 
-    suspend fun getSettings() = realm.initDb { PokedexSettingsDb() }
+    private val pokemonDbList: PokemonDbList = realm.initDbBlocking { PokemonDbList() }
+    private val pokemonSettingsDb = realm.initDbBlocking { PokedexSettingsDb() }
+
+    fun getSettings() = pokemonSettingsDb
         .asFlow()
         .mapNotNull { it.obj }
         .map {
@@ -48,30 +51,19 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
             )
         }
 
-    suspend fun getPokemonLists() = realm.initDb { PokemonDbList() }
+    fun getPokemonLists() = pokemonDbList
         .asFlow()
         .mapNotNull { it.obj }
 
-    suspend fun getPokemonList() = realm.initDb { PokemonDbList() }
-        .asFlow()
-        .mapNotNull { it.obj }
-        .mapNotNull { it.listDb.map { p -> p.toPokemon() } }
-
-    fun getPokemonListNoSuspend() = realm.initDbNoSuspend { PokemonDbList() }
+    fun getPokemonList() = pokemonDbList
         .asFlow()
         .mapNotNull { it.obj }
         .mapNotNull { it.listDb.map { p -> p.toPokemon() } }
 
-    suspend fun getSavedPokemonList() = realm.initDb { PokemonDbList() }
+    fun getSavedPokemonList() = pokemonDbList
         .asFlow()
         .mapNotNull { it.obj }
         .mapNotNull { it.savedList }
-
-    suspend fun insertPokemon(pokemon: Pokemon) {
-        realm.updateInfo<PokemonDbList> {
-            it?.listDb?.add(pokemon.toPokemonDb())
-        }
-    }
 
     suspend fun insertPokemon(pokemon: List<Pokemon>) {
         realm.updateInfo<PokemonDbList> {
@@ -79,7 +71,7 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         }
     }
 
-    suspend fun getPokemonInfo(name: String) = realm.initDb { PokemonDbList() }
+    fun getPokemonInfo(name: String) = pokemonDbList
         .cachedInfo
         .find { it.name == name }
         ?.toPokemonInfo()
@@ -89,12 +81,6 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
             it?.cachedInfo?.add(pokemonInfo.toPokemonInfoDb())
         }
     }
-
-    /*suspend fun insertPokemon(pokemon: List<PokemonDb>) {
-        realm.updateInfo<PokemonDbList> {
-            it?.listDb?.addAll(pokemon)
-        }
-    }*/
 
     suspend fun clearPokemonCache() {
         realm.updateInfo<PokemonDbList> {
@@ -112,18 +98,16 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         realm.updateInfo<PokedexSettingsDb> { it?.hasCache = state }
     }
 
-    suspend fun getSinglePokemon(name: String) = realm
-        .initDb { PokemonDbList() }
+    fun getSinglePokemon(name: String) = pokemonDbList
         .listDb
         .find { it.name == name }
 
-    suspend fun searchPokemon(searchQuery: String) = realm
-        .initDb { PokemonDbList() }.asFlow()
+    fun searchPokemon(searchQuery: String) = pokemonDbList
+        .asFlow()
         .mapNotNull { it.obj }
         .mapNotNull { it.listDb.filter { l -> l.name.contains(searchQuery, true) } }
 
-    suspend fun saved(name: String) = realm
-        .initDb { PokemonDbList() }
+    fun saved(name: String) = pokemonDbList
         .asFlow()
         .mapNotNull { it.obj }
         .map { it.savedList.find { s -> s.name == name } }
@@ -161,11 +145,7 @@ private suspend inline fun <reified T : RealmObject> Realm.updateInfo(crossinlin
     }
 }
 
-private suspend inline fun <reified T : RealmObject> Realm.initDb(crossinline default: () -> T): T {
+private inline fun <reified T : RealmObject> Realm.initDbBlocking(crossinline default: () -> T): T {
     val f = query(T::class).first().find()
-    return f ?: write { copyToRealm(default()) }
-}
-
-private inline fun <reified T : RealmObject> Realm.initDbNoSuspend(crossinline default: () -> T): T {
-    return query(T::class).first().find() ?: default()
+    return f ?: writeBlocking { copyToRealm(default()) }
 }

@@ -15,7 +15,6 @@ import com.programmersbox.common.pokedex.search.SearchScreen
 import com.programmersbox.common.pokedex.settings.SettingScreen
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.NavOptions
 import moe.tlaster.precompose.navigation.Navigator
@@ -53,14 +52,12 @@ private class AppViewModel(
     val pokemonList = mutableStateListOf<Pokemon>()
 
     init {
-        viewModelScope.launch {
-            pokedexDatabase.getPokemonList()
-                .onEach {
-                    pokemonList.clear()
-                    pokemonList.addAll(it)
-                }
-                .launchIn(this)
-        }
+        pokedexDatabase.getPokemonList()
+            .onEach {
+                pokemonList.clear()
+                pokemonList.addAll(it)
+            }
+            .launchIn(viewModelScope)
     }
 
 }
