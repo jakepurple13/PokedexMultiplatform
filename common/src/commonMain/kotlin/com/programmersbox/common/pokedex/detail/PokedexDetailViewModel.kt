@@ -8,16 +8,19 @@ import com.programmersbox.common.pokedex.PokedexService
 import com.programmersbox.common.pokedex.PokemonInfo
 import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.database.SavedPokemon
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import moe.tlaster.precompose.viewmodel.ViewModel
-import moe.tlaster.precompose.viewmodel.viewModelScope
 
 internal class PokedexDetailViewModel(
     private val name: String?,
     private val pokedexDatabase: PokedexDatabase,
-) : ViewModel() {
+) {
+    private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
     var pokemonInfo: DetailState by mutableStateOf(DetailState.Loading)
 
     var savedPokemon by mutableStateOf<SavedPokemon?>(null)

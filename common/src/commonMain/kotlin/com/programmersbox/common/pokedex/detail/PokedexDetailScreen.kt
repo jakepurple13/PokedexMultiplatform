@@ -5,7 +5,11 @@ package com.programmersbox.common.pokedex.detail
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,45 +32,74 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.programmersbox.common.*
+import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.PokemonInfo
 import com.programmersbox.common.pokedex.SpriteType
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import io.kamel.image.KamelImage
 import io.kamel.image.lazyPainterResource
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import moe.tlaster.precompose.navigation.BackStackEntry
 import moe.tlaster.precompose.navigation.path
-import moe.tlaster.precompose.viewmodel.viewModel
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun PokedexDetailScreen(backStackEntry: BackStackEntry) {
+internal fun PokedexDetailScreen(backStackEntry: BackStackEntry, list: List<Pokemon>) {
     val pokedexDatabase = LocalPokedexDatabase.current
-    val vm = viewModel(PokedexDetailViewModel::class) {
-        PokedexDetailViewModel(
-            backStackEntry.path("name"),
-            pokedexDatabase
-        )
-    }
+    val scope = rememberCoroutineScope()
+    val name: String? = backStackEntry.path("name")
+    val f = name
+        ?.let { n -> list.indexOfFirst { it.name == n } }
+        ?.coerceAtLeast(0) ?: 3
+    val pagerState = rememberPagerState(initialPage = f)
 
-    Crossfade(targetState = vm.pokemonInfo, label = "") { target ->
-        when (target) {
-            DetailState.Error -> ErrorState(
-                onTryAgain = {}
-            )
+    HorizontalPager(
+        pageCount = list.size,
+        state = pagerState,
+        beyondBoundsPageCount = 1,
+        pageSpacing = 2.dp,
+        key = { it }
+    ) { index ->
+        val newVm = remember {
+            PokedexDetailViewModel(list[index].name, pokedexDatabase)
+        }
+        Crossfade(
+            targetState = newVm.pokemonInfo,
+            label = "",
+        ) { target ->
+            when (target) {
+                DetailState.Error -> ErrorState(
+                    onTryAgain = {}
+                )
 
-            DetailState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
-                PokeballLoading(
-                    modifier = Modifier.align(Alignment.Center)
+                DetailState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
+                    PokeballLoading(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                is DetailState.Success -> ContentScreen(
+                    pokemon = target.pokemonInfo,
+                    isSaved = newVm.savedPokemon != null,
+                    onSave = newVm::save,
+                    onDelete = newVm::remove,
+                    onPlayCry = newVm::playCry,
+                    showLeft = index > 0,
+                    showRight = index < list.size,
+                    leftPress = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(index - 1)
+                        }
+                    },
+                    rightPress = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(index + 1)
+                        }
+                    }
                 )
             }
-
-            is DetailState.Success -> ContentScreen(
-                pokemon = target.pokemonInfo,
-                isSaved = vm.savedPokemon != null,
-                onSave = vm::save,
-                onDelete = vm::remove,
-                onPlayCry = vm::playCry
-            )
         }
     }
 }
@@ -117,8 +150,13 @@ private fun ContentScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onPlayCry: (String) -> Unit,
+    showLeft: Boolean,
+    showRight: Boolean,
+    leftPress: () -> Unit,
+    rightPress: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollState = rememberScrollState()
     Scaffold(
         topBar = {
             ContentHeader(
@@ -131,7 +169,32 @@ private fun ContentScreen(
             )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-    ) { padding -> ContentBody(pokemon = pokemon, paddingValues = padding) }
+    ) { padding -> ContentBody(pokemon = pokemon, paddingValues = padding, scrollState = scrollState) }
+    val alphaScroll = remember { Animatable(0f) }
+
+    LaunchedEffect(scrollState.value) {
+        alphaScroll.animateTo(1f)
+        delay(3000)
+        alphaScroll.animateTo(0f)
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .alpha(alphaScroll.value)
+    ) {
+        if (showLeft) {
+            IconButton(
+                onClick = leftPress,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) { Icon(Icons.Default.ArrowLeft, null) }
+        }
+        if (showRight) {
+            IconButton(
+                onClick = rightPress,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) { Icon(Icons.Default.ArrowRight, null) }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -139,8 +202,8 @@ private fun ContentScreen(
 private fun ContentBody(
     pokemon: PokemonInfo,
     paddingValues: PaddingValues,
+    scrollState: ScrollState = rememberScrollState()
 ) {
-    val scrollState = rememberScrollState()
     Box {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

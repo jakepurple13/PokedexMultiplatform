@@ -57,6 +57,11 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
         .mapNotNull { it.obj }
         .mapNotNull { it.listDb.map { p -> p.toPokemon() } }
 
+    fun getPokemonListNoSuspend() = realm.initDbNoSuspend { PokemonDbList() }
+        .asFlow()
+        .mapNotNull { it.obj }
+        .mapNotNull { it.listDb.map { p -> p.toPokemon() } }
+
     suspend fun getSavedPokemonList() = realm.initDb { PokemonDbList() }
         .asFlow()
         .mapNotNull { it.obj }
@@ -115,13 +120,13 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
     suspend fun searchPokemon(searchQuery: String) = realm
         .initDb { PokemonDbList() }.asFlow()
         .mapNotNull { it.obj }
-        .mapNotNull { it.listDb.filter { it.name.contains(searchQuery, true) } }
+        .mapNotNull { it.listDb.filter { l -> l.name.contains(searchQuery, true) } }
 
     suspend fun saved(name: String) = realm
         .initDb { PokemonDbList() }
         .asFlow()
         .mapNotNull { it.obj }
-        .map { it.savedList.find { it.name == name } }
+        .map { it.savedList.find { s -> s.name == name } }
 
     suspend fun save(savedPokemon: SavedPokemon) {
         realm.updateInfo<PokemonDbList> {
@@ -159,4 +164,8 @@ private suspend inline fun <reified T : RealmObject> Realm.updateInfo(crossinlin
 private suspend inline fun <reified T : RealmObject> Realm.initDb(crossinline default: () -> T): T {
     val f = query(T::class).first().find()
     return f ?: write { copyToRealm(default()) }
+}
+
+private inline fun <reified T : RealmObject> Realm.initDbNoSuspend(crossinline default: () -> T): T {
+    return query(T::class).first().find() ?: default()
 }

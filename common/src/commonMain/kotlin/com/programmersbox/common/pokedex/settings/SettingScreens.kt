@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.programmersbox.common.LocalNavController
+import com.programmersbox.common.PokeballLoading
 import com.programmersbox.common.PokedexRed
 import com.programmersbox.common.SortingContainer
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
@@ -75,6 +76,10 @@ internal fun SettingScreen() {
             ThemeOption(
                 currentThemeType = vm.themeType,
                 onThemeChange = vm::changeTheme
+            )
+
+            PokeballLoading(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
     }

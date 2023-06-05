@@ -1,6 +1,18 @@
 package com.programmersbox.common.pokedex
 
-/*@OptIn(ExperimentalPagingApi::class)
+/*
+import app.cash.paging.ExperimentalPagingApi
+import app.cash.paging.LoadType
+import app.cash.paging.PagingState
+import app.cash.paging.RemoteMediator
+import app.cash.paging.RemoteMediatorMediatorResult
+import app.cash.paging.RemoteMediatorMediatorResultSuccess
+import app.cash.paging.RemoteMediatorMediatorResultError
+import com.programmersbox.common.pokedex.database.PokedexDatabase
+import com.programmersbox.common.pokedex.database.PokemonDb
+import com.programmersbox.common.pokedex.database.toPokemonDb
+
+@OptIn(ExperimentalPagingApi::class)
 internal class PokemonRemoteMediator(
     private val database: PokedexDatabase,
     private val networkService: PokedexService = PokedexService
@@ -54,4 +66,5 @@ internal class PokemonRemoteMediator(
             RemoteMediatorMediatorResultError(e)
         } as RemoteMediatorMediatorResult
     }
-}*/
+}
+*/
