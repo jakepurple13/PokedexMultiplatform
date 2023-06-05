@@ -197,7 +197,7 @@ private fun ContentScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContentBody(
     pokemon: PokemonInfo,
@@ -480,7 +480,10 @@ private fun ContentHeader(
                 )
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(),
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        ),
         scrollBehavior = scrollBehavior
     )
 }
