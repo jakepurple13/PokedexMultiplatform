@@ -37,7 +37,7 @@ import com.programmersbox.common.pokedex.PokemonInfo
 import com.programmersbox.common.pokedex.SpriteType
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import io.kamel.image.KamelImage
-import io.kamel.image.lazyPainterResource
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.navigation.BackStackEntry
@@ -502,7 +502,7 @@ private fun ImageWithBlurImage(
         modifier = modifier
     ) {
         KamelImage(
-            resource = lazyPainterResource(url),
+            resource = asyncPainterResource(url),
             contentDescription = name,
             contentScale = ContentScale.FillWidth,
             colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
@@ -515,7 +515,7 @@ private fun ImageWithBlurImage(
                 .alpha(.5f)
         )
         KamelImage(
-            resource = lazyPainterResource(url),
+            resource = asyncPainterResource(url),
             contentDescription = name,
             contentScale = ContentScale.Fit,
             modifier = Modifier

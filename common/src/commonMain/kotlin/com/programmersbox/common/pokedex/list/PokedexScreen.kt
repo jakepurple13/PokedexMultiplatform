@@ -39,7 +39,7 @@ import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import com.programmersbox.common.pokedex.database.SavedPokemon
 import io.kamel.image.KamelImage
-import io.kamel.image.lazyPainterResource
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moe.tlaster.precompose.navigation.Navigator
@@ -343,7 +343,7 @@ private fun PokedexEntry(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     KamelImage(
-                        resource = lazyPainterResource(pokemon.imageUrl),
+                        resource = asyncPainterResource(pokemon.imageUrl),
                         contentDescription = pokemon.name,
                         contentScale = ContentScale.FillWidth,
                         colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(3f) }),
@@ -356,7 +356,7 @@ private fun PokedexEntry(
                             .alpha(.5f)
                     )
                     KamelImage(
-                        resource = lazyPainterResource(pokemon.imageUrl),
+                        resource = asyncPainterResource(pokemon.imageUrl),
                         contentDescription = pokemon.name,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
@@ -401,7 +401,7 @@ private fun PokedexEntryList(
                 leadingContent = {
                     Box(contentAlignment = Alignment.Center) {
                         KamelImage(
-                            resource = lazyPainterResource(pokemon.imageUrl),
+                            resource = asyncPainterResource(pokemon.imageUrl),
                             contentDescription = pokemon.name,
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.size(100.dp)
@@ -464,7 +464,7 @@ private fun DrawerContent(
                     },
                     leadingContent = {
                         KamelImage(
-                            resource = lazyPainterResource(it.imageUrl),
+                            resource = asyncPainterResource(it.imageUrl),
                             contentDescription = it.name,
                             contentScale = ContentScale.Fit,
                             modifier = Modifier

@@ -26,7 +26,7 @@ import com.programmersbox.common.navigateToDetail
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import com.programmersbox.common.pokedex.list.Animations
 import io.kamel.image.KamelImage
-import io.kamel.image.lazyPainterResource
+import io.kamel.image.asyncPainterResource
 import moe.tlaster.precompose.flow.collectAsStateWithLifecycle
 import moe.tlaster.precompose.viewmodel.viewModel
 
@@ -90,7 +90,7 @@ internal fun SearchScreen() {
                     headlineText = { Text(pokemon.name.firstCharCapital()) },
                     leadingContent = {
                         KamelImage(
-                            resource = lazyPainterResource(pokemon.imageUrl),
+                            resource = asyncPainterResource(pokemon.imageUrl),
                             contentDescription = pokemon.name,
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.size(100.dp)
