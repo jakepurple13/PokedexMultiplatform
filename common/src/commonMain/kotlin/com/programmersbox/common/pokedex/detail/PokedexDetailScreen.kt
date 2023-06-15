@@ -9,6 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -88,6 +89,7 @@ internal fun PokedexDetailScreen(backStackEntry: BackStackEntry, list: List<Poke
                     onPlayCry = newVm::playCry,
                     showLeft = index > 0,
                     showRight = index < list.size,
+                    state = pagerState,
                     leftPress = {
                         scope.launch {
                             pagerState.animateScrollToPage(index - 1)
@@ -142,7 +144,7 @@ private fun ErrorState(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun ContentScreen(
     pokemon: PokemonInfo,
@@ -153,7 +155,8 @@ private fun ContentScreen(
     showLeft: Boolean,
     showRight: Boolean,
     leftPress: () -> Unit,
-    rightPress: () -> Unit
+    rightPress: () -> Unit,
+    state: PagerState
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scrollState = rememberScrollState()
@@ -172,11 +175,12 @@ private fun ContentScreen(
     ) { padding -> ContentBody(pokemon = pokemon, paddingValues = padding, scrollState = scrollState) }
     val alphaScroll = remember { Animatable(0f) }
 
-    LaunchedEffect(scrollState.value) {
+    LaunchedEffect(scrollState.value, state.currentPage) {
         alphaScroll.animateTo(1f)
         delay(3000)
         alphaScroll.animateTo(0f)
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -277,6 +281,20 @@ private fun ContentBody(
                 Text(
                     "Base Stats",
                     style = MaterialTheme.typography.displaySmall
+                )
+
+                Radarny(
+                    state = rememberRadarnyState(
+                        list = pokemon.stats.map {
+                            RadarnyBean(
+                                it.baseStat.toFloat(),
+                                it.stat.shortenedName,
+                                it.stat.statColor
+                            )
+                        },
+                        maxValue = 300f
+                    ),
+                    modifier = Modifier.size(400.dp)
                 )
 
                 pokemon.stats.forEach {

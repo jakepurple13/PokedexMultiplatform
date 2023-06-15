@@ -74,7 +74,7 @@ kotlin {
                 api("androidx.core:core-ktx:1.10.1")
                 api("io.ktor:ktor-client-cio:$ktorVersion")
                 api("androidx.paging:paging-runtime:3.1.1")
-                api("androidx.paging:paging-compose:1.0.0-alpha20")
+                api("androidx.paging:paging-compose:3.2.0-beta01")
             }
         }
 
@@ -93,7 +93,6 @@ kotlin {
         }
 
         val desktopTest by getting
-
 
         val iosX64Main by getting
         val iosArm64Main by getting

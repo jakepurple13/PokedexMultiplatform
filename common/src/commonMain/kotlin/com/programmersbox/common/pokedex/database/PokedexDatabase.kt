@@ -47,7 +47,7 @@ internal class PokedexDatabase(name: String = Realm.DEFAULT_FILE_NAME) {
                 sort = PokemonSort.valueOf(it.sort),
                 listType = PokemonListType.valueOf(it.listType),
                 hasCache = it.hasCache,
-                themeType = ThemeType.valueOf(it.themeType)
+                themeType = runCatching { ThemeType.valueOf(it.themeType) }.getOrNull() ?: ThemeType.Default
             )
         }
 
