@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.*
+import com.programmersbox.common.roundToDecimals
 import kotlin.math.*
 
 internal data class RadarnyBean(
@@ -32,7 +33,6 @@ internal class RadarnyState(
     internal var mFramePadding = -1
     internal var mInnerFramePercentage = DEF_INNER_FRAME_PERCENTAGE
     internal var mValuePath = Path()
-    internal var mValueProgressPercentage = 1f
     internal var mInnerFramePath = Path()
     internal var mFramePath = Path()
     internal var mTextPercentage = DEF_TEXT_PERCENTAGE
@@ -55,15 +55,17 @@ internal fun Radarny(
     valueColor: Color = MaterialTheme.colorScheme.primary,
     frameColor: Color = MaterialTheme.colorScheme.onSurface,
     innerFrameColor: Color = MaterialTheme.colorScheme.onSurface,
+    mValueProgressPercentage: Float = 1f,
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
+
     Canvas(modifier) {
         anchorParam(state)
         drawFrameLine(state.mFramePath, state.mPointPairList, frameColor)
         drawFrameLine(state.mInnerFramePath, state.mPointInnerPairList, innerFrameColor)
 
-        drawPolygon(state, valueColor)
+        drawPolygon(state, valueColor, mValueProgressPercentage)
 
         state.mList.forEachIndexed { i, bean ->
             if (isShowLine) {
@@ -73,7 +75,7 @@ internal fun Radarny(
                     bean.color ?: innerFrameColor
                 )
             }
-            drawLabel(bean, i, state, textMeasurer, innerFrameColor)
+            drawLabel(bean, i, state, textMeasurer, innerFrameColor, mValueProgressPercentage)
         }
     }
 }
@@ -106,9 +108,10 @@ private fun DrawScope.drawLabel(
     i: Int,
     state: RadarnyState,
     textMeasurer: TextMeasurer,
-    color: Color
+    color: Color,
+    mValueProgressPercentage: Float
 ) {
-    val value = bean.value * state.mValueProgressPercentage
+    val value = (bean.value * mValueProgressPercentage).roundToDecimals(1)
 
     val label = textMeasurer.measure(bean.label).size
     val valueText = textMeasurer.measure(bean.value.toString()).size
@@ -141,12 +144,13 @@ private fun DrawScope.drawLabel(
 /** 绘制多边形 */
 private fun DrawScope.drawPolygon(
     state: RadarnyState,
-    color: Color
+    color: Color,
+    mValueProgressPercentage: Float
 ) {
     val path = state.mValuePath
     val (x1, y1) = center
     for (i in 0 until state.mList.size) {
-        val value = state.mList[i].value * state.mValueProgressPercentage
+        val value = (state.mList[i].value * mValueProgressPercentage).roundToDecimals(1)
         val offset = state.mRadius * state.mInnerFramePercentage//偏移量
         val r = if (state.mMaxValue == 0f) offset else (state.mRadius - offset) * value / state.mMaxValue + offset
         val pair = getXY(i, r, 1f, state.mAverageAngle, x1, y1)

@@ -283,6 +283,13 @@ private fun ContentBody(
                     style = MaterialTheme.typography.displaySmall
                 )
 
+                val mValueProgressPercentage = remember {
+                    Animatable(0f)
+                }
+                LaunchedEffect(Unit) {
+                    mValueProgressPercentage.animateTo(1f)
+                }
+
                 Radarny(
                     state = rememberRadarnyState(
                         list = pokemon.stats.map {
@@ -294,6 +301,7 @@ private fun ContentBody(
                         },
                         maxValue = 300f
                     ),
+                    mValueProgressPercentage = mValueProgressPercentage.value,
                     modifier = Modifier.size(400.dp)
                 )
 
