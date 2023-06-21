@@ -47,14 +47,17 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun PokedexDetailScreen(backStackEntry: BackStackEntry, list: List<Pokemon>) {
+internal fun PokedexDetailScreen(backStackEntry: BackStackEntry?, name: String?, list: List<Pokemon>) {
     val pokedexDatabase = LocalPokedexDatabase.current
     val scope = rememberCoroutineScope()
-    val name: String? = backStackEntry.path("name")
-    val f = name
+    val f = (backStackEntry?.path("name") ?: name)
         ?.let { n -> list.indexOfFirst { it.name == n } }
         ?.coerceAtLeast(0) ?: 3
     val pagerState = rememberPagerState(initialPage = f)
+
+    LaunchedEffect(f) {
+        if (list.isNotEmpty()) pagerState.animateScrollToPage(f)
+    }
 
     HorizontalPager(
         pageCount = list.size,

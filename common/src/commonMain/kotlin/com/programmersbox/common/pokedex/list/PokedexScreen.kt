@@ -49,7 +49,10 @@ import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-internal fun PokedexScreen() {
+internal fun PokedexScreen(
+    navController: Navigator = LocalNavController.current,
+    onDetailNavigation: (String) -> Unit = navController::navigateToDetail
+) {
     val pokedexDatabase = LocalPokedexDatabase.current
     val vm = viewModel(PokedexViewModel::class) { PokedexViewModel(pokedexDatabase) }
 
@@ -59,7 +62,6 @@ internal fun PokedexScreen() {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val navController = LocalNavController.current
 
     val gridState = rememberLazyGridState()
     val listState = rememberLazyListState()
@@ -77,8 +79,8 @@ internal fun PokedexScreen() {
     DrawerContainer(
         drawerContent = {
             DrawerContent(
-                navController = navController,
                 saved = saved,
+                onClick = onDetailNavigation,
                 scrollTo = { s ->
                     scope.launch {
                         gridState.animateScrollToItem(entries.indexOfFirst { it.url == s.url })
@@ -144,7 +146,7 @@ internal fun PokedexScreen() {
             }
         ) { padding ->
             val onClick: (Pokemon) -> Unit = {
-                it.name.let(navController::navigateToDetail)
+                onDetailNavigation(it.name)
             }
 
             Crossfade(targetState = vm.pokemonListType) { target ->
@@ -436,7 +438,7 @@ private fun PokedexEntryList(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DrawerContent(
-    navController: Navigator,
+    onClick: (String) -> Unit,
     saved: List<SavedPokemon>,
     scrollTo: (SavedPokemon) -> Unit,
 ) {
@@ -452,7 +454,7 @@ private fun DrawerContent(
         }
         items(saved) {
             Card(
-                onClick = { navController.navigateToDetail(it.name) },
+                onClick = { onClick(it.name) },
             ) {
                 ListItem(
                     headlineText = { Text(it.name.firstCharCapital()) },

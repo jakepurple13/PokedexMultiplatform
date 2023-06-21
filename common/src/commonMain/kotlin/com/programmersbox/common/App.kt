@@ -1,3 +1,5 @@
+@file:Suppress("INLINE_FROM_HIGHER_PLATFORM")
+
 package com.programmersbox.common
 
 import androidx.compose.animation.slideInHorizontally
@@ -18,18 +20,22 @@ import kotlinx.coroutines.flow.onEach
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.NavOptions
 import moe.tlaster.precompose.navigation.Navigator
+import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.transition.NavTransition
 import moe.tlaster.precompose.viewmodel.ViewModel
 import moe.tlaster.precompose.viewmodel.viewModel
 import moe.tlaster.precompose.viewmodel.viewModelScope
 
 @Composable
-internal fun App() {
+internal fun App(
+    navController: Navigator = LocalNavController.current,
+    onDetailNavigation: (String) -> Unit = navController::navigateToDetail
+) {
     val db = LocalPokedexDatabase.current
     val vm = viewModel(AppViewModel::class) { AppViewModel(db) }
     Surface {
         NavHost(
-            navigator = LocalNavController.current,
+            navigator = navController,
             initialRoute = PokedexScreens.Pokedex.route,
             navTransition = NavTransition(
                 createTransition = slideInHorizontally { it },
@@ -38,8 +44,8 @@ internal fun App() {
                 pauseTransition = slideOutHorizontally { -it },
             )
         ) {
-            scene(PokedexScreens.Pokedex.route) { PokedexScreen() }
-            scene(PokedexScreens.Detail.route) { PokedexDetailScreen(it, vm.pokemonList) }
+            scene(PokedexScreens.Pokedex.route) { PokedexScreen(navController, onDetailNavigation) }
+            scene(PokedexScreens.Detail.route) { PokedexDetailScreen(it, it.path("path"), vm.pokemonList) }
             scene(PokedexScreens.Search.route) { SearchScreen() }
             scene(PokedexScreens.Settings.route) { SettingScreen() }
         }
