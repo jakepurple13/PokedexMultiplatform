@@ -2,18 +2,20 @@ package com.programmersbox.common
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import com.moriatsushi.insetsx.safeArea
 import com.programmersbox.common.pokedex.colors.PokedexTheme
 import moe.tlaster.precompose.PreComposeApplication
 import platform.AVFAudio.AVAudioPlayer
@@ -37,11 +39,9 @@ public fun MainViewController(): UIViewController = PreComposeApplication("Poked
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
+            color = Color(0xFFe74c3c)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Spacer(Modifier.height(30.dp))
+            Box(Modifier.windowInsetsPadding(WindowInsets.safeArea)) {
                 UIShow()
             }
         }

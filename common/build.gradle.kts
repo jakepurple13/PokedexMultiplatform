@@ -54,11 +54,12 @@ kotlin {
                 api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
                 api("io.ktor:ktor-client-logging:$ktorVersion")
-                api("moe.tlaster:precompose:1.4.1")
-                api("moe.tlaster:precompose-viewmodel:1.4.1")
+                api("moe.tlaster:precompose:1.4.2")
+                api("moe.tlaster:precompose-viewmodel:1.4.2")
                 api("app.cash.paging:paging-common:3.2.0-alpha05-0.2.2")
                 api("io.github.qdsfdhvh:image-loader:1.2.10")
-                api("media.kamel:kamel-image:0.5.1")
+                api("media.kamel:kamel-image:0.6.0")
+                api("com.moriatsushi.insetsx:insetsx:0.1.0-alpha10")
             }
         }
 
@@ -74,8 +75,8 @@ kotlin {
                 api("androidx.core:core-ktx:1.10.1")
                 api("io.ktor:ktor-client-cio:$ktorVersion")
                 api("androidx.paging:paging-runtime:3.1.1")
-                api("androidx.paging:paging-compose:3.2.0-beta01")
-                api("androidx.compose.material3:material3-window-size-class:1.0.1")
+                api("androidx.paging:paging-compose:3.2.0-rc01")
+                api("androidx.compose.material3:material3-window-size-class:1.1.1")
                 api("com.google.accompanist:accompanist-adaptive:0.30.0")
             }
         }

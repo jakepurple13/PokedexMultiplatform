@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
@@ -140,8 +141,8 @@ public actual fun DrawerContainer(
 ) {
     val features = LocalDisplayFeatures.current
     val size = LocalWindowClassSize.current
-    when (size.widthSizeClass) {
-        WindowWidthSizeClass.Expanded -> {
+    when {
+        size.widthSizeClass == WindowWidthSizeClass.Expanded && size.heightSizeClass != WindowHeightSizeClass.Compact -> {
             val db = LocalPokedexDatabase.current
             val vm = viewModel(BigViewModel::class) { BigViewModel(db) }
             TwoPane(
@@ -160,9 +161,13 @@ public actual fun DrawerContainer(
                     )
                 },
                 displayFeatures = features,
-                strategy = HorizontalTwoPaneStrategy(splitFraction = 0.5f, gapWidth = 16.dp)
+                strategy = HorizontalTwoPaneStrategy(splitFraction = 0.5f)
             )
-            val dockStatus by broadcastReceiver(false, IntentFilter(Intent.ACTION_DOCK_EVENT)) { c, i ->
+
+            val dockStatus by broadcastReceiver(
+                defaultValue = false,
+                intentFilter = IntentFilter(Intent.ACTION_DOCK_EVENT)
+            ) { _, i ->
                 val state = i.getIntExtra(Intent.EXTRA_DOCK_STATE, -1)
                 state != Intent.EXTRA_DOCK_STATE_UNDOCKED
             }
