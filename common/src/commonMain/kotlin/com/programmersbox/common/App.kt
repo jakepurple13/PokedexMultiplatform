@@ -52,7 +52,7 @@ internal fun App(
     }
 }
 
-private class AppViewModel(
+internal class AppViewModel(
     pokedexDatabase: PokedexDatabase
 ) : ViewModel() {
     val pokemonList = mutableStateListOf<Pokemon>()

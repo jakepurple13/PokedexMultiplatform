@@ -9,10 +9,7 @@ import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -41,16 +38,18 @@ import com.google.accompanist.adaptive.HorizontalTwoPaneStrategy
 import com.google.accompanist.adaptive.TwoPane
 import com.programmersbox.common.pokedex.Pokemon
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
-import com.programmersbox.common.pokedex.database.PokedexDatabase
 import com.programmersbox.common.pokedex.detail.PokedexDetailScreen
+import com.programmersbox.common.pokedex.list.PokedexScreen
+import com.programmersbox.common.pokedex.search.SearchScreen
+import com.programmersbox.common.pokedex.settings.SettingScreen
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import moe.tlaster.precompose.viewmodel.ViewModel
+import moe.tlaster.precompose.flow.collectAsStateWithLifecycle
+import moe.tlaster.precompose.navigation.NavHost
+import moe.tlaster.precompose.navigation.path
+import moe.tlaster.precompose.navigation.transition.NavTransition
 import moe.tlaster.precompose.viewmodel.viewModel
-import moe.tlaster.precompose.viewmodel.viewModelScope
 import kotlin.time.Duration.Companion.minutes
 
 public actual fun getPlatformName(): String {
@@ -59,22 +58,54 @@ public actual fun getPlatformName(): String {
 
 @Composable
 public fun UIShow() {
-    var pokemonChosen by rememberSaveable { mutableStateOf("bulbasaur") }
     val navController = LocalNavController.current
-    val size = LocalWindowClassSize.current
-    CompositionLocalProvider(
-        LocalCurrentPokemonChosen provides pokemonChosen
-    ) {
-        App(
-            navController = navController,
-            onDetailNavigation = {
-                //FIXME: This isn't working on configuration changes
-                when (size.widthSizeClass) {
-                    WindowWidthSizeClass.Expanded -> pokemonChosen = it
-                    else -> navController.navigateToDetail(it)
+    val db = LocalPokedexDatabase.current
+    val vm = viewModel(AppViewModel::class) { AppViewModel(db) }
+    Surface {
+        NavHost(
+            navigator = navController,
+            initialRoute = PokedexScreens.Pokedex.route,
+            navTransition = NavTransition(
+                createTransition = slideInHorizontally { it },
+                destroyTransition = slideOutHorizontally { it },
+                resumeTransition = slideInHorizontally { -it },
+                pauseTransition = slideOutHorizontally { -it },
+            )
+        ) {
+            scene(PokedexScreens.Pokedex.route) {
+                val size = LocalWindowClassSize.current
+                when {
+                    size.widthSizeClass == WindowWidthSizeClass.Expanded && size.heightSizeClass != WindowHeightSizeClass.Compact -> {
+                        val features = LocalDisplayFeatures.current
+                        var pokemonChosen by rememberSaveable { mutableStateOf("bulbasaur") }
+                        TwoPane(
+                            first = {
+                                PokedexScreen(
+                                    navController = navController,
+                                    onDetailNavigation = { pokemonChosen = it }
+                                )
+                            },
+                            second = {
+                                PokedexDetailScreen(
+                                    backStackEntry = null,
+                                    name = pokemonChosen,
+                                    list = vm.pokemonList
+                                )
+                            },
+                            displayFeatures = features,
+                            strategy = HorizontalTwoPaneStrategy(splitFraction = 0.5f)
+                        )
+                    }
+
+                    else -> {
+                        PokedexScreen(navController = navController)
+                    }
                 }
             }
-        )
+            scene(PokedexScreens.Detail.route) { PokedexDetailScreen(it, it.path("path"), vm.pokemonList) }
+            scene(PokedexScreens.Search.route) { SearchScreen() }
+            scene(PokedexScreens.Settings.route) { SettingScreen() }
+        }
     }
 }
 
@@ -139,65 +170,14 @@ public actual fun DrawerContainer(
     drawerContent: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val features = LocalDisplayFeatures.current
     val size = LocalWindowClassSize.current
     when {
         size.widthSizeClass == WindowWidthSizeClass.Expanded && size.heightSizeClass != WindowHeightSizeClass.Compact -> {
-            val db = LocalPokedexDatabase.current
-            val vm = viewModel(BigViewModel::class) { BigViewModel(db) }
-            TwoPane(
-                first = {
-                    DismissibleNavigationDrawer(
-                        drawerState = drawerState,
-                        drawerContent = { DismissibleDrawerSheet { drawerContent() } },
-                        content = content
-                    )
-                },
-                second = {
-                    PokedexDetailScreen(
-                        backStackEntry = null,
-                        name = LocalCurrentPokemonChosen.current,
-                        list = vm.pokemonList
-                    )
-                },
-                displayFeatures = features,
-                strategy = HorizontalTwoPaneStrategy(splitFraction = 0.5f)
+            DismissibleNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = { DismissibleDrawerSheet { drawerContent() } },
+                content = content
             )
-
-            val dockStatus by broadcastReceiver(
-                defaultValue = false,
-                intentFilter = IntentFilter(Intent.ACTION_DOCK_EVENT)
-            ) { _, i ->
-                val state = i.getIntExtra(Intent.EXTRA_DOCK_STATE, -1)
-                state != Intent.EXTRA_DOCK_STATE_UNDOCKED
-            }
-
-            AnimatedVisibility(
-                dockStatus,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                var newPokemon by remember { mutableStateOf(0) }
-                val randomPokemon: Pokemon? by produceState<Pokemon?>(
-                    initialValue = null,
-                    key1 = dockStatus,
-                    key2 = vm.pokemonList,
-                    key3 = newPokemon
-                ) {
-                    while (dockStatus) {
-                        value = vm.pokemonList.randomOrNull()
-                        delay(1.minutes.inWholeMilliseconds)
-                    }
-                }
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    onClick = { newPokemon++ }
-                ) {
-                    Crossfade(randomPokemon) { pokemon ->
-                        pokemon?.let { PokemonImage(it) }
-                    }
-                }
-            }
         }
 
         else -> {
@@ -210,21 +190,6 @@ public actual fun DrawerContainer(
     }
 }
 
-private class BigViewModel(
-    pokedexDatabase: PokedexDatabase
-) : ViewModel() {
-    val pokemonList = mutableStateListOf<Pokemon>()
-
-    init {
-        pokedexDatabase.getPokemonList()
-            .onEach {
-                pokemonList.clear()
-                pokemonList.addAll(it)
-            }
-            .launchIn(viewModelScope)
-    }
-}
-
 public actual val AllImageSize: Pair<Dp, Dp> = 100.dp to 160.dp
 
 public val LocalWindowClassSize: ProvidableCompositionLocal<WindowSizeClass> =
@@ -233,6 +198,48 @@ public val LocalDisplayFeatures: ProvidableCompositionLocal<List<DisplayFeature>
     staticCompositionLocalOf { error("Nothing here") }
 public val LocalCurrentPokemonChosen: ProvidableCompositionLocal<String> =
     compositionLocalOf { error("Nothing here") }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Screensaver() {
+    val list by LocalPokedexDatabase.current.getPokemonList().collectAsStateWithLifecycle(emptyList())
+
+    val dockStatus by broadcastReceiver(
+        defaultValue = false,
+        intentFilter = IntentFilter(Intent.ACTION_DOCK_EVENT)
+    ) { _, i ->
+        val state = i.getIntExtra(Intent.EXTRA_DOCK_STATE, -1)
+        state != Intent.EXTRA_DOCK_STATE_UNDOCKED
+    }
+
+    AnimatedVisibility(
+        dockStatus,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        var newPokemon by remember { mutableStateOf(0) }
+        val randomPokemon: Pokemon? by produceState<Pokemon?>(
+            initialValue = null,
+            key1 = dockStatus,
+            key2 = list,
+            key3 = newPokemon
+        ) {
+            while (dockStatus) {
+                value = list.randomOrNull()
+                delay(1.minutes.inWholeMilliseconds)
+            }
+        }
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            onClick = { newPokemon++ }
+        ) {
+            Crossfade(randomPokemon) { pokemon ->
+                pokemon?.let { PokemonImage(it) }
+            }
+        }
+    }
+
+}
 
 @Composable
 private fun <T : Any> broadcastReceiver(

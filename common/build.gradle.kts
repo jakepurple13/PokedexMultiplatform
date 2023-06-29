@@ -76,7 +76,7 @@ kotlin {
                 api("io.ktor:ktor-client-cio:$ktorVersion")
                 api("androidx.paging:paging-runtime:3.1.1")
                 api("androidx.paging:paging-compose:3.2.0-rc01")
-                api("androidx.compose.material3:material3-window-size-class:1.1.1")
+                api("androidx.compose.material3:material3-window-size-class:1.0.1")
                 api("com.google.accompanist:accompanist-adaptive:0.30.0")
             }
         }
