@@ -97,8 +97,8 @@ private fun ThemeOption(
         onClick = { showOptions = !showOptions }
     ) {
         ListItem(
-            headlineText = { Text("Change Theme") },
-            overlineText = { Text(currentThemeType.name) },
+            headlineContent = { Text("Change Theme") },
+            overlineContent = { Text(currentThemeType.name) },
         )
         AnimatedVisibility(showOptions) {
             Column(modifier = Modifier.padding(start = 24.dp)) {
@@ -158,7 +158,7 @@ private fun ClearListCache(
         onClick = { showDialog = true }
     ) {
         ListItem(
-            headlineText = { Text("Clear Pokedex Cache") },
+            headlineContent = { Text("Clear Pokedex Cache") },
             trailingContent = { Text("$entryCount entries") }
         )
     }
@@ -200,7 +200,7 @@ private fun ClearInfoCache(
         onClick = { showDialog = true }
     ) {
         ListItem(
-            headlineText = { Text("Clear Pokedex Detail Cache") },
+            headlineContent = { Text("Clear Pokedex Detail Cache") },
             trailingContent = { Text("$entryCount entries") }
         )
     }

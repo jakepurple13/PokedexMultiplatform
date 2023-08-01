@@ -399,7 +399,7 @@ private fun PokedexEntryList(
     ) {
         if (pokemon != null) {
             ListItem(
-                headlineText = { Text(pokemon.name.firstCharCapital()) },
+                headlineContent = { Text(pokemon.name.firstCharCapital()) },
                 leadingContent = {
                     Box(contentAlignment = Alignment.Center) {
                         KamelImage(
@@ -421,7 +421,7 @@ private fun PokedexEntryList(
                         )
                     }
                 },
-                overlineText = { Text("#${pokemon.pokedexEntry}") },
+                overlineContent = { Text("#${pokemon.pokedexEntry}") },
                 modifier = Modifier.padding(4.dp)
             )
         } else {
@@ -457,8 +457,8 @@ private fun DrawerContent(
                 onClick = { onClick(it.name) },
             ) {
                 ListItem(
-                    headlineText = { Text(it.name.firstCharCapital()) },
-                    overlineText = { Text("#${it.pokedexEntry}") },
+                    headlineContent = { Text(it.name.firstCharCapital()) },
+                    overlineContent = { Text("#${it.pokedexEntry}") },
                     trailingContent = {
                         IconButton(
                             onClick = { scrollTo(it) }
@@ -491,13 +491,13 @@ internal fun SortPokemon(
         Column {
             TopAppBar(title = { Text("Sort") })
             LazyColumn {
-                val values = PokemonSort.values()
+                val values = PokemonSort.entries
                 itemsIndexed(values) { index, sort ->
                     ListItem(
                         leadingContent = {
                             RadioButton(selected = sort == pokemonSort, onClick = null)
                         },
-                        headlineText = { Text(sort.name) },
+                        headlineContent = { Text(sort.name) },
                         modifier = Modifier.clickable {
                             onSortChange(sort)
                             onDismiss()

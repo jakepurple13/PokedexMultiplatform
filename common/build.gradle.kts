@@ -12,7 +12,7 @@ version = "1.0-SNAPSHOT"
 
 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions.jvmTarget = "11"
         }
@@ -42,6 +42,7 @@ kotlin {
     sourceSets {
         val ktorVersion = extra["ktor.version"] as String
         val realmVersion = extra["realm.version"] as String
+        val precompose = "1.5.0-beta01"
         val commonMain by getting {
             dependencies {
                 api(compose.runtime)
@@ -54,11 +55,11 @@ kotlin {
                 api("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 api("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
                 api("io.ktor:ktor-client-logging:$ktorVersion")
-                api("moe.tlaster:precompose:1.4.2")
-                api("moe.tlaster:precompose-viewmodel:1.4.2")
+                api("moe.tlaster:precompose:$precompose")
+                api("moe.tlaster:precompose-viewmodel:$precompose")
                 api("app.cash.paging:paging-common:3.2.0-alpha05-0.2.2")
                 api("io.github.qdsfdhvh:image-loader:1.2.10")
-                api("media.kamel:kamel-image:0.6.0")
+                api("media.kamel:kamel-image:0.6.1")
                 api("com.moriatsushi.insetsx:insetsx:0.1.0-alpha10")
             }
         }
@@ -74,14 +75,14 @@ kotlin {
                 api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.10.1")
                 api("io.ktor:ktor-client-cio:$ktorVersion")
-                api("androidx.paging:paging-runtime:3.1.1")
-                api("androidx.paging:paging-compose:3.2.0-rc01")
-                api("androidx.compose.material3:material3-window-size-class:1.0.1")
+                api("androidx.paging:paging-runtime:3.2.0")
+                api("androidx.paging:paging-compose:3.2.0")
+                api("androidx.compose.material3:material3-window-size-class:1.1.1")
                 api("com.google.accompanist:accompanist-adaptive:0.30.0")
             }
         }
 
-        val androidTest by getting {
+        val androidUnitTest by getting {
             dependencies {
                 implementation("junit:junit:4.13.2")
             }

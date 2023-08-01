@@ -87,7 +87,7 @@ internal fun SearchScreen() {
         ) {
             itemsIndexed(pokemonList) { index, pokemon ->
                 ListItem(
-                    headlineText = { Text(pokemon.name.firstCharCapital()) },
+                    headlineContent = { Text(pokemon.name.firstCharCapital()) },
                     leadingContent = {
                         KamelImage(
                             resource = asyncPainterResource(pokemon.imageUrl),

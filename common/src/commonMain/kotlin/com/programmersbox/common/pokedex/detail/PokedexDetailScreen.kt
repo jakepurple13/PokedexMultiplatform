@@ -53,14 +53,16 @@ internal fun PokedexDetailScreen(backStackEntry: BackStackEntry?, name: String?,
     val f = (backStackEntry?.path("name") ?: name)
         ?.let { n -> list.indexOfFirst { it.name == n } }
         ?.coerceAtLeast(0) ?: 3
-    val pagerState = rememberPagerState(initialPage = f)
+    val pagerState = rememberPagerState(
+        initialPage = f,
+        initialPageOffsetFraction = 0f
+    ) { list.size }
 
     LaunchedEffect(f) {
         if (list.isNotEmpty()) pagerState.animateScrollToPage(f)
     }
 
     HorizontalPager(
-        pageCount = list.size,
         state = pagerState,
         beyondBoundsPageCount = 1,
         pageSpacing = 2.dp,
@@ -330,8 +332,8 @@ private fun ContentBody(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             ListItem(
-                                headlineText = { Text(it.version.name) },
-                                supportingText = { Text(it.flavorText) }
+                                headlineContent = { Text(it.version.name) },
+                                supportingContent = { Text(it.flavorText) }
                             )
                         }
                     }
@@ -365,7 +367,7 @@ private fun ShowImages(pokemon: PokemonInfo) {
         AnimatedVisibility(showMoreImages) {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.Center
             ) {
                 spritesList.forEach { sprite ->
                     val iconChoice: @Composable (Modifier) -> Unit = when (sprite.key) {
