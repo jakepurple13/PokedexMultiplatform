@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.programmersbox.common.LocalNavController
 import com.programmersbox.common.PokeballLoading
 import com.programmersbox.common.PokedexRed
-import com.programmersbox.common.SortingContainer
 import com.programmersbox.common.pokedex.database.LocalPokedexDatabase
 import com.programmersbox.common.pokedex.database.ThemeType
 import com.programmersbox.common.pokedex.list.Animations
@@ -49,7 +48,7 @@ internal fun SettingScreen() {
                             Icon(Icons.Default.ArrowBack, null)
                         }
                     },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = PokedexRed
                     ),
                 )
@@ -102,7 +101,7 @@ private fun ThemeOption(
         )
         AnimatedVisibility(showOptions) {
             Column(modifier = Modifier.padding(start = 24.dp)) {
-                ThemeType.values().forEach {
+                ThemeType.entries.forEach {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
                         modifier = Modifier
@@ -131,27 +130,24 @@ private fun ClearListCache(
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
-        SortingContainer(
-            onDismiss = { showDialog = false }
-        ) {
-            AlertDialogContent(
-                buttons = {
-                    FlowRow {
-                        TextButton(
-                            onClick = {
-                                showDialog = false
-                                onConfirm()
-                            }
-                        ) { Text("Confirm", color = MaterialTheme.colorScheme.error) }
-                        TextButton(
-                            onClick = { showDialog = false }
-                        ) { Text("Cancel") }
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Clear Cache?") },
+            text = { Text("Do not do this too often. ONLY do this if there are new pokemon.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog = false
+                        onConfirm()
                     }
-                },
-                title = { Text("Clear Cache?") },
-                text = { Text("Do not do this too often. ONLY do this if there are new pokemon.") }
-            )
-        }
+                ) { Text("Confirm", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog = false }
+                ) { Text("Cancel") }
+            }
+        )
     }
 
     ElevatedCard(
@@ -173,27 +169,24 @@ private fun ClearInfoCache(
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
-        SortingContainer(
-            onDismiss = { showDialog = false }
-        ) {
-            AlertDialogContent(
-                buttons = {
-                    FlowRow {
-                        TextButton(
-                            onClick = {
-                                showDialog = false
-                                onConfirm()
-                            }
-                        ) { Text("Confirm", color = MaterialTheme.colorScheme.error) }
-                        TextButton(
-                            onClick = { showDialog = false }
-                        ) { Text("Cancel") }
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Clear Detail Cache?") },
+            text = { Text("Do not do this too often. ONLY do this if something goes wrong.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog = false
+                        onConfirm()
                     }
-                },
-                title = { Text("Clear Detail Cache?") },
-                text = { Text("Do not do this too often. ONLY do this if something goes wrong.") }
-            )
-        }
+                ) { Text("Confirm", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog = false }
+                ) { Text("Cancel") }
+            }
+        )
     }
 
     ElevatedCard(
